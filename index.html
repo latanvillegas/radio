@@ -7,18 +7,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <title>Radio Satelital | Latan Villegas</title>
-  <meta name="description" content="Experiencia de radio inmersiva. Emisoras de Perú, España y el mundo.">
-
-  <meta property="og:title" content="Radio Satelital Ultra">
-  <meta property="og:description" content="La mejor experiencia de radio online.">
-  <meta property="og:type" content="music.radio_station">
+  <meta name="description" content="Experiencia de radio inmersiva Ultra.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css" />
-  </head>
+</head>
 
 <body class="page">
   <div class="ambient-bg"></div>
@@ -31,7 +27,7 @@
         </div>
         <div class="brand-text">
           <h1 class="site-title">Satelital</h1>
-          <p class="site-subtitle">Latan Villegas</p>
+          <p class="site-subtitle">Ultra Interface v2.0</p>
         </div>
       </div>
     </div>
@@ -41,12 +37,11 @@
     <div class="container layout">
 
       <aside class="sidebar">
-        
         <section class="player-section glass-panel">
           <div class="player-info">
-            <span class="status-indicator" id="statusIndicator">Offline</span>
-            <h2 id="currentStation" class="track-title">Selecciona una emisora</h2>
-            <p id="playerHint" class="track-artist">Explora el mundo</p>
+            <span class="status-indicator" id="statusIndicator">Ready</span>
+            <h2 id="currentStation" class="track-title">Selecciona Emisora</h2>
+            <p id="playerHint" class="track-artist">Esperando señal...</p>
           </div>
 
           <audio id="radioPlayer" preload="none" class="sr-only"></audio>
@@ -66,7 +61,7 @@
 
         <section class="filters glass-panel">
           <div class="filters-header">
-            <h3>Explorar</h3>
+            <h3>Frecuencia</h3>
             <button id="clearFilters" class="btn-text">Reset</button>
           </div>
           
@@ -81,28 +76,27 @@
 
       <section class="stations-panel glass-panel">
         <div class="panel-head">
-          <h3>Emisoras</h3>
+          <h3>Transmisiones</h3>
           <div class="search-wrap">
-            <input id="stationSearch" type="search" placeholder="Buscar..." class="input-dark search-input">
+            <input id="stationSearch" type="search" placeholder="Buscar señal..." class="input-dark search-input">
           </div>
         </div>
 
         <div class="fav-toggle-wrap">
           <label class="switch-label">
             <input type="checkbox" id="favoritesToggle">
-            <span class="switch-text">Solo Favoritos</span>
+            <span class="switch-text">Prioridad Favoritos</span>
           </label>
         </div>
 
-        <div id="stationList" class="station-grid">
-          </div>
+        <div id="stationList" class="station-grid"></div>
       </section>
 
     </div>
   </main>
 
   <footer class="site-footer">
-    <p>&copy; 2025 Latan Villegas · Ultra Radio Interface</p>
+    <p>&copy; 2025 Latan Villegas · System Online</p>
   </footer>
 
   <script src="js/main.js"></script>
