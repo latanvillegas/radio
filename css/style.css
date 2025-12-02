@@ -1,1 +1,114 @@
+/* ====== ESTILO GENERAL ====== */
+* {
+  box-sizing: border-box;
+}
 
+body {
+  background: #0b0b0b;
+  color: #f5f5f5;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: #141414;
+  border-bottom: 1px solid #333;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+  color: #bbbbbb;
+}
+
+main {
+  padding: 1.5rem 1rem 2.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+/* ====== FILTROS ====== */
+.filtros {
+  background: #161616;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+}
+
+.filtro {
+  margin-bottom: 0.75rem;
+}
+
+label {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+select {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #111;
+  color: #f5f5f5;
+}
+
+/* ====== PLAYER ====== */
+.player-section audio {
+  width: 100%;
+}
+
+#currentStation {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #cccccc;
+}
+
+/* ====== LISTA DE EMISORAS ====== */
+#stationList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.station-btn {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: #ffca28;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #000;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.station-btn:hover {
+  opacity: 0.9;
+}
+
+.station-meta {
+  font-size: 0.8rem;
+  color: #333;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: #aaaaaa;
+  border-top: 1px solid #333;
+  background: #101010;
+}
