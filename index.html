@@ -3,64 +3,175 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Radio Satelital - Latan Villegas</title>
+  <meta name="description" content="Escucha radios de Perú, España y otros países en un solo lugar. Emisoras en línea organizadas por región y país.">
+
+  <!-- Favicon (cuando tengas un logo, cambia href) -->
+  <!-- <link rel="icon" type="image/svg+xml" href="img/favicon.svg" /> -->
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Radio Satelital - Latan Villegas">
+  <meta property="og:description" content="Directorio de radios online de Perú, España y más. Selecciona por región, país, o emisoras favoritas.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://latanvillegasavelino.github.io/Radio-Satelital-Latan-Villegas/">
+  <!-- <meta property="og:image" content="URL_DE_TU_IMAGEN_DE_PORTADA"> -->
+
+  <!-- Tipografía (Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- CSS -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
 
-<body>
+<body class="page">
+  <!-- ENLACE SALTAR AL CONTENIDO (ACCESIBILIDAD) -->
+  <a class="skip-link" href="#mainContent">Saltar al contenido principal</a>
 
   <!-- ENCABEZADO -->
-  <header>
-    <h1>Radio Satelital – Latan Villegas</h1>
-    <p class="subtitle">Emisoras organizadas por región y país</p>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-mark">
+          <!-- Logo mínimo (puedes reemplazar por SVG propio) -->
+          <div class="brand-icon" aria-hidden="true">
+            <span class="brand-wave"></span>
+          </div>
+          <div class="brand-text">
+            <h1 class="site-title">Radio Satelital</h1>
+            <p class="site-subtitle">Latan Villegas · Radios en línea</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-meta">
+        <p class="header-tagline">Escucha radios de Perú, España y más, en un solo lugar.</p>
+      </div>
+    </div>
   </header>
 
   <!-- CONTENIDO PRINCIPAL -->
-  <main class="layout">
+  <main id="mainContent" class="site-main">
+    <div class="container layout">
 
-    <!-- COLUMNA IZQUIERDA -->
-    <aside class="sidebar">
+      <!-- COLUMNA IZQUIERDA / PANEL LATERAL -->
+      <aside class="sidebar" aria-label="Filtros y reproductor">
 
-      <!-- FILTROS -->
-      <section class="filtros">
-        <h2>Filtrar emisoras</h2>
+        <!-- FILTROS -->
+        <section class="filters" aria-labelledby="filtersTitle">
+          <div class="section-header">
+            <h2 id="filtersTitle">Filtrar emisoras</h2>
+          </div>
 
-        <div class="filtro">
-          <label for="regionSelect">Región:</label>
-          <select id="regionSelect"></select>
+          <form class="filters-form" aria-describedby="filtersHelp">
+            <p id="filtersHelp" class="filters-help">
+              Elige una región, un país o busca por nombre para encontrar tu emisora.
+            </p>
+
+            <div class="form-group">
+              <label for="regionSelect">Región</label>
+              <select id="regionSelect" name="region"></select>
+            </div>
+
+            <div class="form-group">
+              <label for="countrySelect">País</label>
+              <select id="countrySelect" name="country"></select>
+            </div>
+
+            <button type="button" id="clearFilters" class="btn btn-secondary">
+              Limpiar filtros
+            </button>
+          </form>
+        </section>
+
+        <!-- REPRODUCTOR -->
+        <section class="player-section" aria-labelledby="playerTitle">
+          <div class="section-header">
+            <h2 id="playerTitle">Reproductor</h2>
+          </div>
+
+          <div class="player-card">
+            <p class="player-label">Emisora actual</p>
+            <p id="currentStation" class="current-station">
+              Ninguna emisora seleccionada.
+            </p>
+
+            <audio
+              id="radioPlayer"
+              class="player-audio"
+              controls
+              preload="none"
+            >
+              Tu navegador no soporta audio HTML5.
+            </audio>
+
+            <p id="playerHint" class="player-hint">
+              Selecciona una emisora de la lista para comenzar a escuchar.
+            </p>
+          </div>
+        </section>
+
+      </aside>
+
+      <!-- COLUMNA DERECHA / LISTADO DE EMISORAS -->
+      <section class="stations-panel" aria-labelledby="stationsTitle">
+        <div class="section-header section-header--inline">
+          <div>
+            <h2 id="stationsTitle">Emisoras disponibles</h2>
+            <p class="section-subtitle">Explora por país, región o guarda tus favoritas.</p>
+          </div>
+
+          <div class="stations-controls">
+            <div class="search-box">
+              <label for="stationSearch" class="sr-only">Buscar emisora por nombre</label>
+              <input
+                id="stationSearch"
+                type="search"
+                placeholder="Buscar emisora..."
+                autocomplete="off"
+              />
+            </div>
+
+            <label class="favorites-toggle">
+              <input type="checkbox" id="favoritesToggle" />
+              <span class="favorites-toggle-pill">
+                <span class="favorites-toggle-knob"></span>
+              </span>
+              <span class="favorites-toggle-label">Solo favoritas</span>
+            </label>
+          </div>
         </div>
 
-        <div class="filtro">
-          <label for="countrySelect">País:</label>
-          <select id="countrySelect"></select>
-        </div>
+        <!-- Lista generada dinámicamente con JS -->
+        <div
+          id="stationList"
+          class="station-list"
+          aria-live="polite"
+          aria-busy="false"
+        ></div>
       </section>
 
-      <!-- REPRODUCTOR -->
-      <section class="player-section">
-        <h2>Reproductor</h2>
-        <audio id="radioPlayer" controls>
-          Tu navegador no soporta audio HTML5.
-        </audio>
-        <p id="currentStation">Ninguna emisora seleccionada.</p>
-      </section>
-
-    </aside>
-
-    <!-- COLUMNA DERECHA -->
-    <section class="stations-panel">
-      <h2>Emisoras disponibles</h2>
-      <div id="stationList"></div>
-    </section>
-
+    </div>
   </main>
 
   <!-- PIE DE PÁGINA -->
-  <footer>
-    <p>&copy; 2025 Radio Satelital – Latan Villegas</p>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; 2025 Radio Satelital – Latan Villegas. Todos los derechos reservados.</p>
+    </div>
   </footer>
+
+  <!-- BARRA DE REPRODUCTOR FIJA PARA MOBILE -->
+  <div class="player-bar" id="playerBar" aria-hidden="true">
+    <div class="player-bar-inner">
+      <span class="player-bar-station" id="playerBarStation">Ninguna emisora</span>
+      <button class="player-bar-btn" id="playerBarPlayPause" type="button" aria-label="Reproducir o pausar">
+        ▶
+      </button>
+    </div>
+  </div>
 
   <!-- JAVASCRIPT -->
   <script src="js/main.js"></script>
