@@ -1,1 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Radio Satelital - Latan Villegas</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Radio Satelital - Latan Villegas</h1>
+    <p class="subtitle">Emisoras por región y país</p>
+  </header>
 
+  <main>
+    <!-- FILTROS -->
+    <section class="filtros">
+      <h2>Filtrar emisoras</h2>
+
+      <div class="filtro">
+        <label for="regionSelect">Región:</label>
+        <select id="regionSelect"></select>
+      </div>
+
+      <div class="filtro">
+        <label for="countrySelect">País:</label>
+        <select id="countrySelect"></select>
+      </div>
+    </section>
+
+    <!-- REPRODUCTOR -->
+    <section class="player-section">
+      <h2>Reproductor</h2>
+      <audio id="radioPlayer" controls>
+        Tu navegador no soporta audio HTML5.
+      </audio>
+      <p id="currentStation">Ninguna emisora seleccionada.</p>
+    </section>
+
+    <!-- LISTA DE RADIOS -->
+    <section>
+      <h2>Emisoras disponibles</h2>
+      <div id="stationList"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Radio Satelital - Latan Villegas</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
