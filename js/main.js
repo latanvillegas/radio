@@ -1,9 +1,9 @@
 // =======================
-// SYSTEM CONFIG v3.2 (STRICT HTTPS)
+// SYSTEM CONFIG v3.3 (HTTPS ONLY - SECURE LIST)
 // =======================
 
 const stations = [
-  // LIMA / NACIONAL (Solo HTTPS validados)
+  // ====== PERÚ – LIMA / NACIONAL ======
   { name: "Radio Moda", country: "Perú", region: "Sudamérica", url: "https://25023.live.streamtheworld.com/CRP_MOD_SC" },
   { name: "Ritmo Romántica", country: "Perú", region: "Sudamérica", url: "https://25103.live.streamtheworld.com/CRP_RIT_SC" },
   { name: "Onda Cero", country: "Perú", region: "Sudamérica", url: "https://mdstrm.com/audio/6598b65ab398c90871aff8cc/icecast.audio" },
@@ -13,12 +13,38 @@ const stations = [
   { name: "Radio Mágica", country: "Perú", region: "Sudamérica", url: "https://26513.live.streamtheworld.com/MAG_AAC_SC" },
   { name: "Radiomar", country: "Perú", region: "Sudamérica", url: "https://24873.live.streamtheworld.com/CRP_MARAAC_SC" },
   { name: "RPP Noticias", country: "Perú", region: "Sudamérica", url: "https://mdstrm.com/audio/5fab3416b5f9ef165cfab6e9/icecast.audio" },
-  { name: "Exitosa", country: "Perú", region: "Sudamérica", url: "https://neptuno-2-audio.mediaserver.digital/79525baf-b0f5-4013-a8bd-3c5c293c6561" },
-  
-  // INTERNACIONAL (HTTPS)
-  { name: "RFI Español", country: "Francia", region: "Europa", url: "https://rfiespagnol96k.ice.infomaniak.ch/rfiespagnol-96k.mp3" },
+  { name: "Exitosa Noticias", country: "Perú", region: "Sudamérica", url: "https://neptuno-2-audio.mediaserver.digital/79525baf-b0f5-4013-a8bd-3c5c293c6561" },
+  { name: "Radio PBO", country: "Perú", region: "Sudamérica", url: "https://stream.radiojar.com/2fse67zuv8hvv" },
+  { name: "Radio Inca", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/b9x47pyk21zuv" },
+
+  // ====== PERÚ – REGIONAL (Solo Streams Seguros) ======
+  { name: "Radio Santa Lucía", country: "Perú", region: "Sudamérica", url: "https://sp.dattavolt.com/8014/stream" },
+  { name: "Radio Pampa Yurac", country: "Perú", region: "Sudamérica", url: "https://rr5200.globalhost1.com/8242/stream" },
+  { name: "Radio Stereo TV", country: "Perú", region: "Sudamérica", url: "https://sp.onliveperu.com:7048/stream" },
+  { name: "Radio La Kuadra", country: "Perú", region: "Sudamérica", url: "https://dattavolt.com/8046/stream" },
+  { name: "Radio Frecuencia", country: "Perú", region: "Sudamérica", url: "https://conectperu.com/8384/stream" },
+  { name: "Onda Popular (Lima)", country: "Perú", region: "Sudamérica", url: "https://envivo.top:8443/am" },
+  { name: "Onda Popular (Juliaca)", country: "Perú", region: "Sudamérica", url: "https://dattavolt.com/8278/stream" },
+  { name: "Radio Nor Andina", country: "Perú", region: "Sudamérica", url: "https://mediastreamm.com/8012/stream/1/" },
+  { name: "Radio Bambamarca", country: "Perú", region: "Sudamérica", url: "https://envivo.top:8443/lider" },
+  { name: "Radio Continente", country: "Perú", region: "Sudamérica", url: "https://sonic6.my-servers.org/10170/" },
+  { name: "La Cheverísima", country: "Perú", region: "Sudamérica", url: "https://sp.onliveperu.com:8114/stream" },
+  { name: "Radio TV El Shaddai", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/ppr5q4q3x1zuv" },
+  { name: "Radio Inica Digital", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/487vgx80yuhvv" },
+  { name: "Radio La Falsa", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/b9x47pyk21zuv" },
+  { name: "Radio Activa", country: "Perú", region: "Sudamérica", url: "https://sp.onliveperu.com:8108/stream" },
+  { name: "Radio Mía", country: "Perú", region: "Sudamérica", url: "https://streaming.zonalatinaeirl.com:8020/radio" },
+  { name: "Radio Patrón", country: "Perú", region: "Sudamérica", url: "https://streaming.zonalatinaeirl.com:8010/radio" },
+  { name: "Radio TV Sureña", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/p7d5fpx4xnhvv" },
+  { name: "Radio Enamorados", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/gnybbqc1fnruv" },
+
+  // ====== EUROPA / INTERNACIONAL ======
+  { name: "RFI Internacional", country: "Francia", region: "Europa", url: "https://rfienespagnol64k.ice.infomaniak.ch/rfienespagnol-64.mp3" },
+  { name: "RFI Español (96k)", country: "Francia", region: "Europa", url: "https://rfiespagnol96k.ice.infomaniak.ch/rfiespagnol-96k.mp3" },
   { name: "DW Español", country: "Alemania", region: "Europa", url: "https://dwstream6-lh.akamaihd.net/i/dwstream6_live@123544/master.m3u8" },
-  { name: "RNE 5", country: "España", region: "Europa", url: "https://dispatcher.rndfnk.com/crtve/rne5/main/mp3/high?aggregator=tunein" },
+  { name: "RNE 5 (España)", country: "España", region: "Europa", url: "https://dispatcher.rndfnk.com/crtve/rne5/main/mp3/high?aggregator=tunein" },
+  { name: "Radio Tele Taxi", country: "España", region: "Europa", url: "https://radiott-web.streaming-pro.com:6103/radiott.mp3" },
+  { name: "Radio ES", country: "España", region: "Europa", url: "https://libertaddigital-radio-live1.flumotion.com/libertaddigital/ld-live1-low.mp3" },
   { name: "Cadena COPE", country: "España", region: "Europa", url: "https://net1-cope-rrcast.flumotion.com/cope/net1-low.mp3" },
   { name: "Radio La Hondureña", country: "Honduras", region: "Centroamérica", url: "https://s2.mkservers.space/rih" }
 ];
@@ -113,7 +139,7 @@ const renderList = () => {
     const isFav = favorites.has(st.name);
     const badgeClass = regionClassMap[st.region] || "badge-default";
     
-    // Si está activo Y reproduciendo, añadimos clase 'animating'
+    // Animar solo si activo + reproduciendo
     const animatingClass = (isActive && isPlaying) ? 'animating' : '';
 
     const div = document.createElement("div");
@@ -162,7 +188,6 @@ const renderList = () => {
 // PLAYER LOGIC
 // =======================
 const playStation = (station) => {
-  // Si clicamos la misma emisora activa
   if (currentStation && currentStation.name === station.name) {
     togglePlay();
     return;
@@ -173,8 +198,6 @@ const playStation = (station) => {
   els.artist.innerText = "Conectando satélite...";
   els.status.innerText = "BUFFERING";
   els.status.className = "status-indicator";
-  
-  // Limpiar error previo
   els.status.style.color = "";
 
   els.player.src = station.url;
@@ -187,9 +210,9 @@ const playStation = (station) => {
       hapticFeedback('success');
     }).catch(e => {
       console.error(e);
+      els.artist.innerText = "Stream offline.";
       els.status.innerText = "ERROR DE SEÑAL";
       els.status.style.color = "#ff3d3d";
-      els.artist.innerText = "Stream offline o bloqueado.";
       setPlayingState(false);
     });
   }
@@ -210,7 +233,6 @@ const togglePlay = () => {
 const setPlayingState = (playing) => {
   isPlaying = playing;
   
-  // Actualizar UI Botón
   if (playing) {
     els.btnPlay.classList.add("playing");
     els.status.innerText = "EN VIVO";
@@ -222,7 +244,6 @@ const setPlayingState = (playing) => {
     els.status.classList.remove("live");
   }
   
-  // Actualizar lista para animar/desanimar el visualizador
   renderList();
 };
 
@@ -266,7 +287,6 @@ const setupListeners = () => {
     localStorage.setItem("ultra_theme", e.target.value);
   });
 
-  // Filtros
   [els.search, els.region, els.country].forEach(el => el.addEventListener("input", renderList));
   els.favToggle.addEventListener("change", renderList);
 
