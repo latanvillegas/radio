@@ -1,12 +1,9 @@
 // =======================
-// SYSTEM CONFIG v3.2 (PATCHED & STABLE)
+// SYSTEM CONFIG v3.3 (FINAL STABLE)
 // =======================
 
 const stations = [
-  // ... (Tus emisoras aquí, no cambies la lista, está bien) ...
-  // COPIA Y PEGA TU LISTA DE EMISORAS ORIGINAL AQUÍ
-  // Para ahorrar espacio en esta respuesta, asumo que mantienes la lista const stations = [...]
-  // Si necesitas que la repita, dímelo, pero es la misma.
+  // ====== PERÚ – LIMA / NACIONAL ======
   { name: "Radio Moda", country: "Perú", region: "Sudamérica", url: "https://25023.live.streamtheworld.com/CRP_MOD_SC" },
   { name: "Ritmo Romántica", country: "Perú", region: "Sudamérica", url: "https://25103.live.streamtheworld.com/CRP_RIT_SC" },
   { name: "Onda Cero", country: "Perú", region: "Sudamérica", url: "https://mdstrm.com/audio/6598b65ab398c90871aff8cc/icecast.audio" },
@@ -19,6 +16,8 @@ const stations = [
   { name: "Exitosa Noticias", country: "Perú", region: "Sudamérica", url: "https://neptuno-2-audio.mediaserver.digital/79525baf-b0f5-4013-a8bd-3c5c293c6561" },
   { name: "Radio PBO", country: "Perú", region: "Sudamérica", url: "https://stream.radiojar.com/2fse67zuv8hvv" },
   { name: "Radio Inca", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/b9x47pyk21zuv" },
+
+  // ====== PERÚ – REGIONAL ======
   { name: "Radio Santa Lucía", country: "Perú", region: "Sudamérica", url: "https://sp.dattavolt.com/8014/stream" },
   { name: "Radio Pampa Yurac", country: "Perú", region: "Sudamérica", url: "https://rr5200.globalhost1.com/8242/stream" },
   { name: "Radio Turbo Mix", country: "Perú", region: "Sudamérica", url: "https://serverssl.innovatestream.pe:8080/167.114.118.120:7624/stream" },
@@ -43,6 +42,8 @@ const stations = [
   { name: "Radio El Patrón (Señal 2)", country: "Perú", region: "Sudamérica", url: "https://serverssl.innovatestream.pe:8080/http://sp.onliveperu.com:8046/;stream" },
   { name: "Radio Televisión Sureña", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/p7d5fpx4xnhvv" },
   { name: "Radio Enamorados", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/gnybbqc1fnruv" },
+
+  // ====== EUROPA / INTERNACIONAL ======
   { name: "RFI Internacional", country: "Francia", region: "Europa", url: "https://rfienespagnol64k.ice.infomaniak.ch/rfienespagnol-64.mp3" },
   { name: "RFI Español (96k)", country: "Francia", region: "Europa", url: "https://rfiespagnol96k.ice.infomaniak.ch/rfiespagnol-96k.mp3" },
   { name: "DW Español", country: "Alemania", region: "Europa", url: "https://dwstream6-lh.akamaihd.net/i/dwstream6_live@123544/master.m3u8" },
@@ -72,13 +73,13 @@ try {
 
 let currentStation = null;
 let isPlaying = false;
-let els = {}; // Inicializamos vacío
+let els = {}; 
 
 // =======================
 // UTILS
 // =======================
 const normalize = (str) => {
-    if(!str) return ""; // --- FIX: Protección contra nulos
+    if(!str) return ""; 
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 };
 
@@ -88,14 +89,14 @@ const hapticFeedback = (intensity = 'light') => {
       if (intensity === 'light') navigator.vibrate(10);
       if (intensity === 'medium') navigator.vibrate(20);
       if (intensity === 'success') navigator.vibrate([10, 30, 10]);
-  } catch(e) {} // Ignorar errores en dispositivos no compatibles
+  } catch(e) {} 
 };
 
 // =======================
 // INIT & THEME
 // =======================
 const init = () => {
-  // --- FIX: Mover la definición de elementos DENTRO de init para asegurar que el DOM existe
+  // Inicialización de selectores
   els = {
     player: document.getElementById("radioPlayer"),
     btnPlay: document.getElementById("btnPlay"),
@@ -115,7 +116,7 @@ const init = () => {
   };
 
   if(!els.list) {
-      console.error("FATAL: No se encontró el elemento #stationList. Revisa tu HTML.");
+      console.error("FATAL: No se encontró el elemento #stationList.");
       return;
   }
   
@@ -123,7 +124,7 @@ const init = () => {
   setTheme(savedTheme);
   if(els.themeSelect) els.themeSelect.value = savedTheme;
 
-  loadFilters();
+  loadFilters(); // Carga de filtros corregida
   if(els.volSlider) updateVolumeVisuals(els.volSlider.value);
   renderList();
   setupListeners();
@@ -144,7 +145,6 @@ const setTheme = (themeName) => {
 // RENDER LOGIC
 // =======================
 const renderList = () => {
-  // Verificamos soporte de transiciones antes de usarlas
   if (!document.startViewTransition) {
     updateDOM();
   } else {
@@ -155,6 +155,7 @@ const renderList = () => {
 const updateDOM = () => {
   els.list.innerHTML = "";
   
+  // Obtener valores con fallback
   const term = normalize(els.search ? els.search.value : "");
   const region = els.region ? els.region.value : "Todas";
   const country = els.country ? els.country.value : "Todos";
@@ -173,7 +174,6 @@ const updateDOM = () => {
     return;
   }
 
-  // Fragment para mejorar rendimiento
   const fragment = document.createDocumentFragment();
 
   filtered.forEach(st => {
@@ -183,7 +183,6 @@ const updateDOM = () => {
     const div = document.createElement("div");
     div.className = `station-card ${isActive ? 'active' : ''}`;
     
-    // Evento para el efecto de luz
     div.onmousemove = (e) => {
       const rect = div.getBoundingClientRect();
       div.style.setProperty("--x", `${e.clientX - rect.left}px`);
@@ -313,13 +312,15 @@ const updateVolumeVisuals = (val) => {
 // FILTERS
 // =======================
 const loadFilters = () => {
-  // --- FIX: Ordenar solo las regiones únicas, y LUEGO añadir "Todas" al principio ---
+  // 1. Extraer únicos y ordenar ALFABÉTICAMENTE
   const uniqueRegions = [...new Set(stations.map(s => s.region))].sort();
-  const regions = ["Todas", ...uniqueRegions];
-  
   const uniqueCountries = [...new Set(stations.map(s => s.country))].sort();
+
+  // 2. INYECTAR "Todas" al principio (SIN REORDENAR)
+  const regions = ["Todas", ...uniqueRegions];
   const countries = ["Todos", ...uniqueCountries];
 
+  // 3. Renderizar
   if(els.region) fillSelect(els.region, regions);
   if(els.country) fillSelect(els.country, countries);
 };
@@ -374,5 +375,4 @@ const setupListeners = () => {
   }
 };
 
-// Esperar a que el DOM esté listo
 document.addEventListener("DOMContentLoaded", init);
