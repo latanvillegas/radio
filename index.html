@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#05070a">
-  <title>Radio Satelital | Ultra Interface v5.1</title>
+  <title>Radio Satelital | Ultra Wave v6.0</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,21 @@
 </head>
 
 <body class="page">
-  <div class="ambient-bg"></div>
+  
+  <div class="waves-container">
+    <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+      <defs>
+        <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+      </defs>
+      <g class="parallax">
+        <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(0, 230, 118, 0.7)" />
+        <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(0, 230, 118, 0.5)" />
+        <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(0, 230, 118, 0.3)" />
+        <use xlink:href="#gentle-wave" x="48" y="7" fill="rgba(0, 230, 118, 0.1)" />
+      </g>
+    </svg>
+  </div>
 
   <header class="site-header">
     <div class="container header-inner">
@@ -21,7 +35,7 @@
         <div class="brand-icon"><div class="brand-wave"></div></div>
         <div class="brand-text">
           <h1 class="site-title">Satelital</h1>
-          <p class="site-subtitle">Dynamic Color v5.1</p>
+          <p class="site-subtitle">Live Waves v6.0</p>
         </div>
       </div>
     </div>
@@ -32,9 +46,9 @@
 
       <aside class="sidebar">
         <section class="player-section glass-panel">
-          <div class="player-bg-dynamic" id="playerDynamicBg"></div>
           
-          <div class="player-content-wrapper"> <div class="player-info">
+          <div class="player-content-wrapper">
+            <div class="player-info">
               <span class="status-indicator" id="statusIndicator">Ready</span>
               
               <div class="track-display">
@@ -68,7 +82,8 @@
                 <input type="range" id="volSlider" min="0" max="1" step="0.01" value="1">
               </div>
             </div>
-          </div> </section>
+          </div>
+        </section>
 
         <section class="add-station glass-panel">
           <div class="panel-head-small">
@@ -128,7 +143,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>&copy; 2025 Radio Satelital · Community Core</p>
+    <p>&copy; 2025 Radio Satelital · Motion Background</p>
   </footer>
 
   <script src="js/main.js"></script>
