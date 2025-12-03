@@ -1,6 +1,6 @@
 // js/stations.js
 const defaultStations = [
-  // ====== PERÚ (Existentes y Nuevas) ======
+  // ====== PERÚ (LIMA / NACIONAL) ======
   { name: "Radio Moda", country: "Perú", region: "Sudamérica", url: "https://25023.live.streamtheworld.com/CRP_MOD_SC" },
   { name: "Ritmo Romántica", country: "Perú", region: "Sudamérica", url: "https://25103.live.streamtheworld.com/CRP_RIT_SC" },
   { name: "Onda Cero", country: "Perú", region: "Sudamérica", url: "https://mdstrm.com/audio/6598b65ab398c90871aff8cc/icecast.audio" },
@@ -13,14 +13,14 @@ const defaultStations = [
   { name: "Exitosa Noticias", country: "Perú", region: "Sudamérica", url: "https://neptuno-2-audio.mediaserver.digital/79525baf-b0f5-4013-a8bd-3c5c293c6561" },
   { name: "Radio PBO", country: "Perú", region: "Sudamérica", url: "https://stream.radiojar.com/2fse67zuv8hvv" },
   { name: "Radio Inca", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/b9x47pyk21zuv" },
+  { name: "Radio ABN", country: "Perú", region: "Sudamérica", url: "https://jml-stream.com/radio/8000/radio.mp3" },
+  { name: "Radio Abba Padre", country: "Perú", region: "Sudamérica", url: "https://stream-175.zeno.fm/6rrwumthg6quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI2cnJ3dW10aGc2cXV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Im9XY2g3dmlTU0NHYlVGQ0QtZmNxUFEiLCJpYXQiOjE3NjQ3OTMwNDksImV4cCI6MTc2NDc5MzEwOX0.U3kdYbFm_XjuESzU_aSQ7owwkG9ScWV9h4fLn36I88U" },
+
+  // ====== PERÚ (REGIONALES) ======
   { name: "Radio Turbo Mix", country: "Perú", region: "Sudamérica", url: "https://serverssl.innovatestream.pe:8080/167.114.118.120:7624/stream" },
   { name: "Radio Fuego", country: "Perú", region: "Sudamérica", url: "https://serverssl.innovatestream.pe:8080/sp.onliveperu.com:8128/" },
   { name: "Radio Andina", country: "Perú", region: "Sudamérica", url: "https://serverssl.innovatestream.pe:8080/http://167.114.118.120:7058/;stream" },
   { name: "Radio Ilucan", country: "Perú", region: "Sudamérica", url: "https://serverssl.innovatestream.pe:8080/167.114.118.120:7820/;stream" },
-  { name: "Radio Abba Padre", country: "Perú", region: "Sudamérica", url: "https://stream-175.zeno.fm/6rrwumthg6quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI2cnJ3dW10aGc2cXV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Im9XY2g3dmlTU0NHYlVGQ0QtZmNxUFEiLCJpYXQiOjE3NjQ3OTMwNDksImV4cCI6MTc2NDc5MzEwOX0.U3kdYbFm_XjuESzU_aSQ7owwkG9ScWV9h4fLn36I88U" },
-  { name: "Radio ABN", country: "Perú", region: "Sudamérica", url: "https://jml-stream.com/radio/8000/radio.mp3" },
-
-  // ====== REGIONALES HTTPS (Perú) ======
   { name: "Radio Santa Lucía", country: "Perú", region: "Sudamérica", url: "https://sp.dattavolt.com/8014/stream" },
   { name: "Radio Pampa Yurac", country: "Perú", region: "Sudamérica", url: "https://rr5200.globalhost1.com/8242/stream" },
   { name: "Radio Stereo TV", country: "Perú", region: "Sudamérica", url: "https://sp.onliveperu.com:7048/stream" },
@@ -41,7 +41,7 @@ const defaultStations = [
   { name: "Radio TV Sureña", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/p7d5fpx4xnhvv" },
   { name: "Radio Enamorados", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/gnybbqc1fnruv" },
 
-  // ====== INTERNACIONAL Y LATINOAMÉRICA (Agregadas) ======
+  // ====== LATINOAMÉRICA ======
   { name: "Radio ABC (San Luis)", country: "México", region: "Norteamérica", url: "https://16643.live.streamtheworld.com/XHCZFM.mp3" },
   { name: "Radio ABC (Taxco)", country: "México", region: "Norteamérica", url: "https://streaming.servicioswebmx.com/8288/stream" },
   { name: "ABC 760", country: "México", region: "Norteamérica", url: "https://streamingcwsradio30.com/8292/stream" },
@@ -61,10 +61,10 @@ const defaultStations = [
   { name: "Abriendo Los Cielos", country: "Honduras", region: "Centroamérica", url: "https://stream-177.zeno.fm/a8uwe88svy8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJhOHV3ZTg4c3Z5OHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Ik9VWVRibTdpUVUtQjVhSHFOWUNyX1EiLCJpYXQiOjE3NjQ3OTQwOTQsImV4cCI6MTc2NDc5NDE1NH0.n3CeLd9U7rcF9A9NsPpzFGJJjuPsUoaf2EsUxGah04w" },
   { name: "Una Radio Viva Voz", country: "Nicaragua", region: "Centroamérica", url: "https://rr5100.globalhost1.com/8006/stream" },
   
+  // ====== EEUU / EUROPA ======
   { name: "105.3 El Ritmo", country: "EE.UU", region: "Norteamérica", url: "https://n02b-e2.revma.ihrhls.com/zc3209/hls.m3u8?rj-ttl=5&rj-tok=AAABmuXcB-4Ad7qhABJqQGGBcg" },
   { name: "Acción Cristiana", country: "EE.UU", region: "Norteamérica", url: "https://panel.lifestreammedia.net:8162/stream" },
 
-  // ====== EUROPA (Existentes y Nuevas) ======
   { name: "RFI Internacional", country: "Francia", region: "Europa", url: "https://rfienespagnol64k.ice.infomaniak.ch/rfienespagnol-64.mp3" },
   { name: "RFI Español (96k)", country: "Francia", region: "Europa", url: "https://rfiespagnol96k.ice.infomaniak.ch/rfiespagnol-96k.mp3" },
   { name: "DW Español", country: "Alemania", region: "Europa", url: "https://dwstream6-lh.akamaihd.net/i/dwstream6_live@123544/master.m3u8" },
