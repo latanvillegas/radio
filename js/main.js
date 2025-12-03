@@ -1,11 +1,9 @@
 // =======================
-// SYSTEM CONFIG v3.7 (TIMER & RGB SLIDER)
+// SYSTEM CONFIG v3.8 (FIXED & STABLE)
 // =======================
 
-// ... (MANTÉN TU LISTA DE STATIONS AQUÍ IGUAL QUE ANTES) ...
-// (Para ahorrar espacio, asumo que la lista 'stations' ya la tienes del mensaje anterior. NO LA BORRES).
 const stations = [
-  // ... pega aquí tu lista de radios HTTPS ...
+  // ====== PERÚ ======
   { name: "Radio Moda", country: "Perú", region: "Sudamérica", url: "https://25023.live.streamtheworld.com/CRP_MOD_SC" },
   { name: "Ritmo Romántica", country: "Perú", region: "Sudamérica", url: "https://25103.live.streamtheworld.com/CRP_RIT_SC" },
   { name: "Onda Cero", country: "Perú", region: "Sudamérica", url: "https://mdstrm.com/audio/6598b65ab398c90871aff8cc/icecast.audio" },
@@ -18,6 +16,8 @@ const stations = [
   { name: "Exitosa Noticias", country: "Perú", region: "Sudamérica", url: "https://neptuno-2-audio.mediaserver.digital/79525baf-b0f5-4013-a8bd-3c5c293c6561" },
   { name: "Radio PBO", country: "Perú", region: "Sudamérica", url: "https://stream.radiojar.com/2fse67zuv8hvv" },
   { name: "Radio Inca", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/b9x47pyk21zuv" },
+  
+  // ====== REGIONALES HTTPS ======
   { name: "Radio Santa Lucía", country: "Perú", region: "Sudamérica", url: "https://sp.dattavolt.com/8014/stream" },
   { name: "Radio Pampa Yurac", country: "Perú", region: "Sudamérica", url: "https://rr5200.globalhost1.com/8242/stream" },
   { name: "Radio Stereo TV", country: "Perú", region: "Sudamérica", url: "https://sp.onliveperu.com:7048/stream" },
@@ -37,6 +37,8 @@ const stations = [
   { name: "Radio Patrón", country: "Perú", region: "Sudamérica", url: "https://streaming.zonalatinaeirl.com:8010/radio" },
   { name: "Radio TV Sureña", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/p7d5fpx4xnhvv" },
   { name: "Radio Enamorados", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/gnybbqc1fnruv" },
+
+  // ====== INTERNACIONAL ======
   { name: "RFI Internacional", country: "Francia", region: "Europa", url: "https://rfienespagnol64k.ice.infomaniak.ch/rfienespagnol-64.mp3" },
   { name: "RFI Español (96k)", country: "Francia", region: "Europa", url: "https://rfiespagnol96k.ice.infomaniak.ch/rfiespagnol-96k.mp3" },
   { name: "DW Español", country: "Alemania", region: "Europa", url: "https://dwstream6-lh.akamaihd.net/i/dwstream6_live@123544/master.m3u8" },
@@ -59,7 +61,6 @@ let isPlaying = false;
 let timerInterval = null;
 let secondsElapsed = 0;
 
-// ELEMENTOS DOM
 const els = {
   player: document.getElementById("radioPlayer"),
   btnPlay: document.getElementById("btnPlay"),
@@ -67,7 +68,7 @@ const els = {
   status: document.getElementById("statusIndicator"),
   title: document.getElementById("currentStation"),
   artist: document.getElementById("playerHint"),
-  timer: document.getElementById("timerDisplay"), // NUEVO
+  timer: document.getElementById("timerDisplay"),
   list: document.getElementById("stationList"),
   search: document.getElementById("stationSearch"),
   region: document.getElementById("regionSelect"),
@@ -78,15 +79,17 @@ const els = {
 };
 
 // =======================
-// INIT & CORE
+// INIT
 // =======================
 const init = () => {
   if(!els.list) return;
+  
   const savedTheme = localStorage.getItem("ultra_theme") || "default";
   setTheme(savedTheme);
   if(els.themeSelect) els.themeSelect.value = savedTheme;
-  
+
   loadFilters();
+  
   // Reset visual forzado
   els.search.value = ""; els.region.value = "Todas"; els.country.value = "Todos"; els.favToggle.checked = false;
   
@@ -99,30 +102,28 @@ const setTheme = (themeName) => {
   document.body.setAttribute("data-theme", themeName === "default" ? "" : themeName);
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if(metaTheme) metaTheme.setAttribute("content", themeName === "amoled" ? "#000000" : "#05070a");
-  // Actualizar el color de la barra si cambiamos de tema
-  updateVolumeVisuals(els.volSlider.value); 
+  updateVolumeVisuals(els.volSlider.value);
 };
 
 // =======================
-// TIMER LOGIC (NUEVO)
+// TIMER LOGIC
 // =======================
 const startTimer = () => {
-  stopTimer(); // Limpiar previo si existe
+  stopTimer();
   secondsElapsed = 0;
-  els.timer.innerText = "00:00";
-  els.timer.classList.remove("inactive");
-  
-  timerInterval = setInterval(() => {
-    secondsElapsed++;
-    const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
-    const s = (secondsElapsed % 60).toString().padStart(2, '0');
-    els.timer.innerText = `${m}:${s}`;
-  }, 1000);
+  if(els.timer) {
+    els.timer.innerText = "00:00";
+    timerInterval = setInterval(() => {
+      secondsElapsed++;
+      const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+      const s = (secondsElapsed % 60).toString().padStart(2, '0');
+      els.timer.innerText = `${m}:${s}`;
+    }, 1000);
+  }
 };
 
 const stopTimer = () => {
   if (timerInterval) clearInterval(timerInterval);
-  els.timer.classList.add("inactive");
 };
 
 // =======================
@@ -185,9 +186,8 @@ const playStation = (station) => {
   els.status.innerText = "BUFFERING";
   els.status.style.color = "";
   
-  // Reiniciar Timer al cambiar emisora
   stopTimer();
-  els.timer.innerText = "00:00";
+  if(els.timer) els.timer.innerText = "00:00";
 
   els.player.src = station.url;
   els.player.volume = els.volSlider.value;
@@ -219,23 +219,23 @@ const setPlayingState = (playing) => {
     els.btnPlay.classList.add("playing");
     els.status.innerText = "EN VIVO";
     els.status.classList.add("live");
-    startTimer(); // INICIA CUENTA
+    startTimer();
     if(currentStation) els.artist.innerText = `${currentStation.country}`;
   } else {
     els.btnPlay.classList.remove("playing");
     els.status.innerText = "PAUSADO";
     els.status.classList.remove("live");
-    stopTimer(); // PAUSA CUENTA
+    stopTimer();
   }
   renderList();
 };
 
 // =======================
-// VISUALS: COLORFUL SLIDER
+// VISUALS: RGB SLIDER
 // =======================
 const updateVolumeVisuals = (val) => {
   const percentage = val * 100;
-  // Gradiente "De Colores" (Pink -> Cyan -> Blue)
+  // Gradiente Neon: Rosa -> Azul
   const gradient = `linear-gradient(90deg, #ff00cc 0%, #3333ff ${percentage}%, rgba(255,255,255,0.1) ${percentage}%)`;
   els.volSlider.style.background = gradient;
 };
