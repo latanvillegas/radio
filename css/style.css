@@ -1,5 +1,5 @@
 /* =========================
-   ULTRA CORE v6.1 (WAVE PLAYER CARD)
+   ULTRA CORE v6.2 (WAVE PLAYER CARD)
    ========================= */
 :root {
   --bg-dark: #05070a;
@@ -24,7 +24,7 @@ body { margin: 0; font-family: var(--font-main); background: var(--bg-dark); col
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
 /* =========================
-   FONDO ESTÁTICO RESTAURADO
+   FONDO ESTÁTICO
    ========================= */
 .ambient-bg {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
@@ -55,39 +55,25 @@ body[data-theme="amoled"] .ambient-bg { display: none; }
 .glass-panel { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; position: relative; }
 
 /* =========================
-   PLAYER CON ONDAS DENTRO
+   PLAYER SECTION
    ========================= */
 .player-section { 
   text-align: center; 
-  min-height: 320px; 
+  min-height: 360px; /* Aumentado ligeramente para los nuevos controles */
   display: flex; 
   flex-direction: column; 
   justify-content: center; 
-  /* IMPORTANTE: Para contener las ondas */
   position: relative; 
   overflow: hidden;
-  /* Fondo verde sutil base para la tarjeta */
   background: linear-gradient(to bottom, rgba(0, 230, 118, 0.05), rgba(0, 0, 0, 0.2));
 }
 
-/* Contenedor de las ondas DENTRO del player */
+/* Ondas de fondo */
 .player-waves-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50%; /* Altura de las ondas dentro de la tarjeta */
-  z-index: 0; /* Detrás del contenido del player */
-  pointer-events: none;
-  opacity: 0.6; /* Transparencia para que no tape el contenido */
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+  z-index: 0; pointer-events: none; opacity: 0.6;
 }
-
-.waves {
-  width: 100%;
-  height: 100%;
-}
-
-/* Animación de las ondas */
+.waves { width: 100%; height: 100%; }
 .parallax > use { animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite; }
 .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
 .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
@@ -96,12 +82,9 @@ body[data-theme="amoled"] .ambient-bg { display: none; }
   0% { transform: translate3d(-90px, 0, 0); }
   100% { transform: translate3d(85px, 0, 0); }
 }
-
-/* En modo AMOLED, apagamos las ondas de la tarjeta */
 body[data-theme="amoled"] .player-waves-container { display: none; }
 
-
-/* El resto de los estilos permanece igual... */
+/* Info Track */
 .status-indicator { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 1rem; display: block; opacity: 0.8; font-weight: 700; position: relative; z-index: 1; }
 .status-indicator.live { color: #00e676; opacity: 1; text-shadow: 0 0 15px rgba(0,230,118,0.5); }
 
@@ -118,19 +101,117 @@ body[data-theme="amoled"] .player-waves-container { display: none; }
 .timer-text { font-family: 'Inter', monospace; font-variant-numeric: tabular-nums; font-size: 2.5rem; font-weight: 900; color: #fff; margin: 1.5rem 0; opacity: 0.15; transition: opacity 0.3s; position: relative; z-index: 1; }
 .live .timer-text { opacity: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
 
-/* Play Button */
-.play-btn { width: 76px; height: 76px; border-radius: 50%; background: var(--text-main); color: #000; border: none; cursor: pointer; margin: 0 auto; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.3); position: relative; z-index: 1; }
+/* =========================
+   CONTROLES PRINCIPALES (NUEVO)
+   ========================= */
+.custom-controls { 
+  margin-top: auto; 
+  width: 100%; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 1.5rem; 
+  align-items: center; 
+  position: relative; 
+  z-index: 1; 
+}
+
+/* Grupo de Botones (Prev - Play - Next) */
+.control-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px; /* Espaciado generoso */
+  width: 100%;
+}
+
+/* Botón Play Central */
+.play-btn { 
+  width: 72px; height: 72px; 
+  border-radius: 50%; 
+  background: var(--text-main); 
+  color: #000; 
+  border: none; cursor: pointer; 
+  display: flex; align-items: center; justify-content: center; 
+  transition: transform 0.2s, box-shadow 0.2s; 
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4); 
+}
 .play-btn:active { transform: scale(0.95); }
-.play-btn svg { width: 32px; height: 32px; fill: currentColor; }
+.play-btn:hover { box-shadow: 0 0 15px rgba(255,255,255,0.4); }
+.play-btn svg { width: 30px; height: 30px; fill: currentColor; }
 .icon-pause { display: none; }
 .playing .icon-play { display: none; }
 .playing .icon-pause { display: block; }
 
-/* Controls */
-.custom-controls { margin-top: auto; width: 100%; display: flex; flex-direction: column; gap: 1.5rem; align-items: center; position: relative; z-index: 1; }
-.volume-control { display: flex; align-items: center; gap: 12px; color: var(--text-muted); width: 100%; max-width: 240px; }
-input[type=range] { -webkit-appearance: none; flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; cursor: pointer; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; background: #fff; border: 2px solid var(--bg-dark); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: transform 0.1s; }
+/* Botones Secundarios (Ghost Buttons) */
+.sec-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  opacity: 0.6; /* Jerarquía visual baja */
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.sec-btn svg { width: 32px; height: 32px; fill: currentColor; }
+.sec-btn:hover { opacity: 1; background: rgba(255,255,255,0.08); transform: scale(1.1); }
+.sec-btn:active { transform: scale(0.9); }
+
+/* =========================
+   SLIDER VOLUMEN (REALISTA)
+   ========================= */
+.volume-control { 
+  display: flex; align-items: center; gap: 16px; 
+  width: 100%; max-width: 260px; 
+  margin: 0 auto;
+}
+
+.volume-control svg {
+  color: rgba(255, 255, 255, 0.6);
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+
+/* El Canal (Track) */
+input[type=range] { 
+  -webkit-appearance: none; 
+  width: 100%; height: 6px; 
+  background: rgba(0, 0, 0, 0.4); /* Canal oscuro */
+  border-radius: 10px; 
+  outline: none; cursor: pointer; 
+  /* Efecto surco */
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.05); 
+  border: 1px solid rgba(255,255,255,0.05); 
+}
+
+/* La Perilla (Thumb) */
+input[type=range]::-webkit-slider-thumb { 
+  -webkit-appearance: none; 
+  height: 18px; width: 18px; 
+  border-radius: 50%; 
+  background: #ffffff; 
+  /* Sombra física */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6); 
+  margin-top: 0; 
+  transition: transform 0.1s ease; 
+  position: relative; z-index: 2;
+}
+
+input[type=range]:active::-webkit-slider-thumb { 
+  transform: scale(1.15); 
+  background: #f5f5f5; 
+  box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Ajustes Responsive */
+@media (max-width: 480px) {
+  .control-group { gap: 24px; }
+  .play-btn { width: 64px; height: 64px; }
+}
+
+/* =========================
+   RESTO DE LA INTERFAZ
+   ========================= */
 
 /* Add Station */
 .add-station { padding: 1.2rem; }
