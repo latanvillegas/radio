@@ -1,8 +1,9 @@
 // =======================
-// SYSTEM CONFIG v6.0 (STABLE)
+// SYSTEM CONFIG v6.1 (STABLE CORE)
 // =======================
 
 const defaultStations = [
+  // ====== PERÚ ======
   { name: "Radio Moda", country: "Perú", region: "Sudamérica", url: "https://25023.live.streamtheworld.com/CRP_MOD_SC" },
   { name: "Ritmo Romántica", country: "Perú", region: "Sudamérica", url: "https://25103.live.streamtheworld.com/CRP_RIT_SC" },
   { name: "Onda Cero", country: "Perú", region: "Sudamérica", url: "https://mdstrm.com/audio/6598b65ab398c90871aff8cc/icecast.audio" },
@@ -15,6 +16,8 @@ const defaultStations = [
   { name: "Exitosa Noticias", country: "Perú", region: "Sudamérica", url: "https://neptuno-2-audio.mediaserver.digital/79525baf-b0f5-4013-a8bd-3c5c293c6561" },
   { name: "Radio PBO", country: "Perú", region: "Sudamérica", url: "https://stream.radiojar.com/2fse67zuv8hvv" },
   { name: "Radio Inca", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/b9x47pyk21zuv" },
+  
+  // ====== REGIONALES HTTPS ======
   { name: "Radio Santa Lucía", country: "Perú", region: "Sudamérica", url: "https://sp.dattavolt.com/8014/stream" },
   { name: "Radio Pampa Yurac", country: "Perú", region: "Sudamérica", url: "https://rr5200.globalhost1.com/8242/stream" },
   { name: "Radio Stereo TV", country: "Perú", region: "Sudamérica", url: "https://sp.onliveperu.com:7048/stream" },
@@ -34,6 +37,8 @@ const defaultStations = [
   { name: "Radio Patrón", country: "Perú", region: "Sudamérica", url: "https://streaming.zonalatinaeirl.com:8010/radio" },
   { name: "Radio TV Sureña", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/p7d5fpx4xnhvv" },
   { name: "Radio Enamorados", country: "Perú", region: "Sudamérica", url: "https://stream.zeno.fm/gnybbqc1fnruv" },
+
+  // ====== INTERNACIONAL ======
   { name: "RFI Internacional", country: "Francia", region: "Europa", url: "https://rfienespagnol64k.ice.infomaniak.ch/rfienespagnol-64.mp3" },
   { name: "RFI Español (96k)", country: "Francia", region: "Europa", url: "https://rfiespagnol96k.ice.infomaniak.ch/rfiespagnol-96k.mp3" },
   { name: "DW Español", country: "Alemania", region: "Europa", url: "https://dwstream6-lh.akamaihd.net/i/dwstream6_live@123544/master.m3u8" },
@@ -79,15 +84,25 @@ const els = {
   addForm: document.getElementById("addStationForm")
 };
 
+// =======================
+// INIT & DATA MERGE
+// =======================
 const init = () => {
   if(!els.list) return;
+  
+  // 1. Cargar Custom Stations de LocalStorage y mezclar
   const customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
-  stations = [...customStations, ...defaultStations];
+  stations = [...customStations, ...defaultStations]; // Custom primero
+
+  // 2. Theme
   const savedTheme = localStorage.getItem("ultra_theme") || "default";
   setTheme(savedTheme);
   if(els.themeSelect) els.themeSelect.value = savedTheme;
+
+  // 3. Setup
   loadFilters();
   els.search.value = ""; els.region.value = "Todas"; els.country.value = "Todos"; els.favToggle.checked = false;
+  
   updateVolumeVisuals(els.volSlider.value);
   renderList();
   setupListeners();
@@ -100,11 +115,18 @@ const setTheme = (themeName) => {
   updateVolumeVisuals(els.volSlider.value);
 };
 
+// =======================
+// PLAYER LOGIC & STATS
+// =======================
 const simulateStats = () => {
+  // Genera números aleatorios creíbles
   const viewers = Math.floor(Math.random() * (5000 - 100) + 100);
   const likes = Math.floor(viewers * (Math.random() * 0.8));
+  
+  // Animar números
   animateValue(els.listenerCount, 0, viewers, 1000);
   animateValue(els.likeCount, 0, likes, 1000);
+  
   els.statsRow.style.opacity = "1";
 };
 
@@ -122,21 +144,25 @@ const animateValue = (obj, start, end, duration) => {
 const playStation = (station) => {
   if (currentStation && currentStation.name === station.name) { togglePlay(); return; }
   currentStation = station;
+  
   els.title.innerText = station.name;
   els.info.innerText = `${station.country} · ${station.region}`;
   els.status.innerText = "CONECTANDO...";
   els.status.style.color = "";
   els.badge.style.display = "none";
-  els.statsRow.style.opacity = "0";
+  els.statsRow.style.opacity = "0"; // Reset stats
+  
   stopTimer();
   if(els.timer) els.timer.innerText = "00:00";
+
   els.player.src = station.url;
   els.player.volume = els.volSlider.value;
+  
   const p = els.player.play();
   if (p !== undefined) {
     p.then(() => {
       setPlayingState(true);
-      simulateStats();
+      simulateStats(); // Trigger simulated stats
       if (navigator.vibrate) navigator.vibrate([10,30]);
     }).catch(e => {
       console.error(e);
@@ -172,16 +198,23 @@ const setPlayingState = (playing) => {
   renderList();
 };
 
+// =======================
+// CUSTOM STATIONS LOGIC
+// =======================
 const addCustomStation = (e) => {
   e.preventDefault();
   const name = document.getElementById("newStationName").value;
   const country = document.getElementById("newStationCountry").value;
   const url = document.getElementById("newStationUrl").value;
+
   if(name && url) {
     const newStation = { name, country, region: "Custom", url, isCustom: true };
     const customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
+    
     customStations.push(newStation);
     localStorage.setItem("ultra_custom", JSON.stringify(customStations));
+    
+    // Recargar todo
     location.reload(); 
   }
 };
@@ -196,12 +229,16 @@ const deleteCustomStation = (e, stationName) => {
   }
 };
 
+// =======================
+// RENDER & FILTERS
+// =======================
 const renderList = () => {
   els.list.innerHTML = "";
   const term = els.search.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const region = els.region.value;
   const country = els.country.value;
   const showFavs = els.favToggle.checked;
+
   const filtered = stations.filter(st => {
     const matchSearch = !term || st.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(term);
     const matchRegion = region === "Todas" || st.region === region;
@@ -209,19 +246,27 @@ const renderList = () => {
     const matchFav = !showFavs || favorites.has(st.name);
     return matchSearch && matchRegion && matchCountry && matchFav;
   });
+
   if (filtered.length === 0) {
     els.list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-muted);">Sin señal.</div>`;
     return;
   }
+
   filtered.forEach(st => {
     const isActive = currentStation && currentStation.name === st.name;
     const isFav = favorites.has(st.name);
     const badgeClass = regionClassMap[st.region] || "badge-default";
     const animatingClass = (isActive && isPlaying) ? 'animating' : '';
+
     const div = document.createElement("div");
     div.className = `station-card ${isActive ? 'active' : ''} ${animatingClass}`;
+    
+    // Delete btn for custom stations
     let deleteHtml = '';
-    if(st.isCustom) deleteHtml = `<button class="del-btn" aria-label="Eliminar">×</button>`;
+    if(st.isCustom) {
+      deleteHtml = `<button class="del-btn" aria-label="Eliminar">×</button>`;
+    }
+
     div.innerHTML = `
       <div class="st-info">
         <div class="st-icon ${badgeClass}"></div>
@@ -232,14 +277,24 @@ const renderList = () => {
         <button class="fav-btn ${isFav ? 'is-fav' : ''}">★</button>
       </div>
     `;
-    div.onclick = (e) => { if(!e.target.closest('button')) playStation(st); };
+    
+    div.onclick = (e) => { 
+      if(!e.target.closest('button')) playStation(st); 
+    };
+    
+    // Fav Handler
     div.querySelector('.fav-btn').onclick = (e) => {
       e.stopPropagation();
       if(favorites.has(st.name)) favorites.delete(st.name); else favorites.add(st.name);
       localStorage.setItem("ultra_favs", JSON.stringify([...favorites]));
       renderList();
     };
-    if(st.isCustom) div.querySelector('.del-btn').onclick = (e) => deleteCustomStation(e, st.name);
+
+    // Delete Handler
+    if(st.isCustom) {
+      div.querySelector('.del-btn').onclick = (e) => deleteCustomStation(e, st.name);
+    }
+
     els.list.appendChild(div);
   });
 };
@@ -263,6 +318,9 @@ const loadFilters = () => {
   fill(els.region, regions); fill(els.country, countries);
 };
 
+// =======================
+// SYSTEM EVENTS
+// =======================
 const startTimer = () => {
   stopTimer(); secondsElapsed = 0;
   if(els.timer) {
@@ -294,6 +352,7 @@ const setupListeners = () => {
     els.search.value = ""; els.region.value = "Todas"; els.country.value = "Todos"; els.favToggle.checked = false;
     renderList();
   });
+  // Add Station Form
   if(els.addForm) els.addForm.addEventListener("submit", addCustomStation);
 };
 
