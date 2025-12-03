@@ -3,10 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
   <meta name="theme-color" content="#05070a">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <title>Radio Satelital | Ultra Core v4</title>
+  <meta name="description" content="Interfaz de radio satelital de alta fidelidad.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+
+  <link rel="stylesheet" href="style.css?v=4.1" />
 </head>
 
 <body class="page">
@@ -15,7 +23,9 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="brand-mark">
-        <div class="brand-icon"><div class="brand-wave"></div></div>
+        <div class="brand-icon">
+          <div class="brand-wave"></div>
+        </div>
         <div class="brand-text">
           <h1 class="site-title">Satelital</h1>
           <p class="site-subtitle">Ultra Core v4.0</p>
@@ -23,10 +33,11 @@
       </div>
       
       <div class="theme-floater">
-        <select id="themeSelect" class="theme-select-top" aria-label="Cambiar Tema">
+        <select id="themeSelect" class="theme-select-top" aria-label="Cambiar Tema Visual">
           <option value="default">Cyber Dark</option>
           <option value="amoled">Pure Black</option>
-          <option value="white">Polar White</option> <option value="gold">Gold Luxury</option>
+          <option value="white">Polar White</option>
+          <option value="gold">Gold Luxury</option>
           <option value="purple">Neon Purple</option>
         </select>
       </div>
@@ -37,57 +48,65 @@
     <div class="container layout">
 
       <aside class="sidebar">
+        
         <section class="player-section glass-panel">
           <div class="player-info">
             <span class="status-indicator" id="statusIndicator">Ready</span>
             <h2 id="currentStation" class="track-title">Selecciona Emisora</h2>
             <p id="playerHint" class="track-artist">Esperando señal...</p>
           </div>
+
           <audio id="radioPlayer" preload="none" class="sr-only"></audio>
+
           <div class="custom-controls">
-            <button id="btnPlay" class="play-btn">
+            <button id="btnPlay" class="play-btn" aria-label="Reproducir">
               <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
+
             <div class="volume-control">
-              <span>Vol</span>
-              <input type="range" id="volSlider" min="0" max="1" step="0.01" value="1">
+              <span style="font-size:0.8rem; font-weight:600;">VOL</span>
+              <input type="range" id="volSlider" min="0" max="1" step="0.01" value="1" aria-label="Control de Volumen">
             </div>
           </div>
         </section>
 
         <section class="filters glass-panel">
-          <div class="filters-header" style="display:flex; justify-content:space-between; margin-bottom:1rem;">
-            <h3 style="margin:0; font-size:1rem;">Filtros</h3>
-            <button id="clearFilters" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.8rem;">Reset</button>
+          <div class="filters-header" style="display:flex; justify-content:space-between; margin-bottom:1rem; align-items:center;">
+            <h3 style="margin:0; font-size:1rem; font-weight:700;">Filtros</h3>
+            <button id="clearFilters" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.75rem; text-transform:uppercase; font-weight:bold; letter-spacing:0.05em;">Reset</button>
           </div>
+          
           <div class="form-group">
-            <label class="input-label">Región</label>
+            <label for="regionSelect" class="input-label">Región</label>
             <select id="regionSelect" class="input-dark"></select>
           </div>
+
           <div class="form-group">
-            <label class="input-label">País</label>
+            <label for="countrySelect" class="input-label">País</label>
             <select id="countrySelect" class="input-dark"></select>
           </div>
         </section>
       </aside>
 
       <section class="stations-panel glass-panel">
+        
         <div class="panel-head">
           <div class="search-wrap" style="flex-grow:1; max-width: 300px;">
-            <input id="stationSearch" type="search" placeholder="Buscar señal..." class="input-dark" style="margin-bottom:0;">
+            <input id="stationSearch" type="search" placeholder="Buscar frecuencia..." class="input-dark" style="margin-bottom:0;">
           </div>
           
           <div class="view-controls">
-            <button class="btn-view active" data-view="auto">Auto</button>
-            <button class="btn-view" data-view="2">2x</button>
-            <button class="btn-view" data-view="4">4x</button>
+            <button class="btn-view active" data-view="auto" title="Ajuste Automático">Auto</button>
+            <button class="btn-view" data-view="2" title="2 Columnas">2x</button>
+            <button class="btn-view" data-view="4" title="4 Columnas">4x</button>
           </div>
         </div>
 
-        <div style="margin-bottom:1rem;">
-          <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; color:var(--text-muted); cursor:pointer;">
-            <input type="checkbox" id="favoritesToggle"> Favoritos Primero
+        <div style="margin-bottom:1.5rem;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-muted); cursor:pointer;">
+            <input type="checkbox" id="favoritesToggle"> 
+            <span style="user-select:none;">Mostrar solo Favoritos ★</span>
           </label>
         </div>
 
@@ -98,9 +117,9 @@
   </main>
 
   <footer class="site-footer">
-    <p>&copy; 2025 Radio Satelital · Ultra Core</p>
+    <p>&copy; 2025 Radio Satelital · System Online</p>
   </footer>
 
-  <script src="main.js"></script>
+  <script src="main.js?v=4.1"></script>
 </body>
 </html>
