@@ -1,6 +1,6 @@
 // js/main.js
 // =======================
-// SYSTEM CONFIG v6.4 (STABLE)
+// SYSTEM CONFIG v6.6 (REFACTORED)
 // =======================
 
 // MAPA DE REGIONES PARA ICONOS
@@ -20,6 +20,7 @@ let currentStation = null;
 let isPlaying = false;
 let timerInterval = null;
 let secondsElapsed = 0;
+let metadataInterval = null; // Loop para buscar datos de canción
 
 // ELEMENTOS DOM
 const els = {
@@ -27,10 +28,14 @@ const els = {
   btnPlay: document.getElementById("btnPlay"),
   btnPrev: document.getElementById("btnPrev"),
   btnNext: document.getElementById("btnNext"),
-  volSlider: document.getElementById("volSlider"),
+  // volSlider ELIMINADO
   status: document.getElementById("statusIndicator"),
-  title: document.getElementById("currentStation"),
-  info: document.getElementById("streamInfo"),
+  
+  // NUEVA ASIGNACIÓN DE JERARQUÍA
+  title: document.getElementById("streamTrack"),       // H2: Ahora es para Artista/Canción (Dinámico)
+  stationName: document.getElementById("currentStation"), // P: Ahora es para Nombre de Estación (Estático)
+  meta: document.getElementById("stationMeta"),        // P: País / Región
+  
   badge: document.getElementById("metaBadge"),
   timer: document.getElementById("timerDisplay"),
   list: document.getElementById("stationList"),
@@ -50,14 +55,11 @@ const els = {
 // INICIALIZACIÓN
 // =======================
 const init = () => {
-  // 1. Verificación de Seguridad
   if (typeof defaultStations === 'undefined') {
-    console.error("CRITICAL: defaultStations not found. Check stations.js");
-    alert("Error: stations.js no se cargó correctamente.");
+    console.error("CRITICAL: defaultStations not found.");
     return;
   }
 
-  // 2. Recuperación de Datos (Con protección contra corrupción)
   try {
     const savedFavs = JSON.parse(localStorage.getItem("ultra_favs") || "[]");
     favorites = new Set(savedFavs);
@@ -65,23 +67,24 @@ const init = () => {
     const customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
     stations = [...customStations, ...defaultStations];
   } catch (e) {
-    console.warn("Datos corruptos detectados. Reseteando memoria local.");
     localStorage.clear();
     stations = [...defaultStations];
     favorites = new Set();
   }
 
-  // 3. Configuración Visual
   const savedTheme = localStorage.getItem("ultra_theme") || "default";
   setTheme(savedTheme);
   if(els.themeSelect) els.themeSelect.value = savedTheme;
 
-  // 4. Renderizado Inicial
   loadFilters();
   resetControls();
-  updateVolumeVisuals(els.volSlider.value);
+  // updateVolumeVisuals ELIMINADO
   renderList();
   setupListeners();
+  
+  // Limpieza inicial de estadísticas
+  if(els.listenerCount) els.listenerCount.innerText = "-";
+  if(els.likeCount) els.likeCount.innerText = "-";
   
   console.log(`System Ready: ${stations.length} stations loaded.`);
 };
@@ -104,30 +107,30 @@ const playStation = (station) => {
   
   currentStation = station;
   
-  // UI Updates
-  els.title.innerText = station.name;
-  els.info.innerText = `${station.country} · ${station.region}`;
+  // UI Updates - NUEVA JERARQUÍA
+  els.stationName.innerText = station.name; // Estático
+  els.title.innerText = "Cargando...";      // Dinámico (esperando metadatos)
+  els.meta.innerText = `${station.country} · ${station.region}`;
+  
   els.status.innerText = "CONECTANDO...";
-  els.status.style.color = ""; // Reset color
+  els.status.style.color = ""; 
   els.badge.style.display = "none";
-  els.statsRow.style.opacity = "0";
   
   stopTimer();
   if(els.timer) els.timer.innerText = "00:00";
 
-  // Audio Load
   els.player.src = station.url;
-  els.player.volume = els.volSlider.value;
+  els.player.volume = 1; // Volumen al máximo por defecto, ya que no hay slider
   
   const p = els.player.play();
   if (p !== undefined) {
     p.then(() => {
       setPlayingState(true);
-      simulateStats();
+      // simulateStats ELIMINADO - Ya no mentimos con estadísticas
       updateMediaSession();
     }).catch(e => {
       console.error("Stream Error:", e);
-      els.info.innerText = "Señal Offline / Error de Conexión";
+      els.title.innerText = "Offline";
       els.status.innerText = "ERROR";
       els.status.style.color = "#ff3d3d";
       setPlayingState(false);
@@ -157,6 +160,12 @@ const setPlayingState = (playing) => {
     els.status.classList.add("live");
     els.badge.style.display = "inline-block";
     startTimer();
+    
+    // Iniciar búsqueda de metadatos (Aquí irá la lógica real en el futuro)
+    obtenerMetadatos();
+    if(metadataInterval) clearInterval(metadataInterval);
+    metadataInterval = setInterval(obtenerMetadatos, 15000); // Cada 15s
+
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
   } else {
     els.btnPlay.classList.remove("playing");
@@ -164,9 +173,23 @@ const setPlayingState = (playing) => {
     els.status.classList.remove("live");
     els.badge.style.display = "none";
     stopTimer();
+    
+    if(metadataInterval) clearInterval(metadataInterval);
+    
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   }
-  renderList(); // Para actualizar animaciones
+  renderList(); 
+};
+
+// Lógica Placeholder para Metadatos
+const obtenerMetadatos = () => {
+    // Si tuvieras una API real, aquí harías el fetch.
+    // Por ahora, mantenemos el texto limpio o mostramos "En vivo"
+    if(isPlaying && currentStation) {
+        // Como no tenemos endpoint real configurado, dejamos un mensaje genérico
+        // o el nombre de la estación si no hay datos.
+        // els.title.innerText = "Música Continua"; 
+    }
 };
 
 const skipStation = (direction) => {
@@ -178,7 +201,6 @@ const skipStation = (direction) => {
   } else {
     const currentIndex = stations.findIndex(s => s.name === currentStation.name);
     newIndex = currentIndex + direction;
-    // Loop infinito
     if (newIndex >= stations.length) newIndex = 0;
     if (newIndex < 0) newIndex = stations.length - 1;
   }
@@ -192,7 +214,6 @@ const renderList = () => {
   if(!els.list) return;
   els.list.innerHTML = "";
   
-  // Filtros normalizados
   const term = els.search.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const region = els.region.value;
   const country = els.country.value;
@@ -212,7 +233,6 @@ const renderList = () => {
     return;
   }
 
-  // Fragment para optimizar renderizado
   const fragment = document.createDocumentFragment();
 
   filtered.forEach(st => {
@@ -242,7 +262,6 @@ const renderList = () => {
       </div>
     `;
     
-    // Eventos
     div.onclick = (e) => { 
       if(!e.target.closest('button')) playStation(st); 
     };
@@ -312,32 +331,6 @@ const setTheme = (themeName) => {
   document.body.setAttribute("data-theme", themeName === "default" ? "" : themeName);
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if(metaTheme) metaTheme.setAttribute("content", themeName === "amoled" ? "#000000" : "#05070a");
-  updateVolumeVisuals(els.volSlider.value);
-};
-
-const updateVolumeVisuals = (val) => {
-  const percentage = val * 100;
-  els.volSlider.style.background = `linear-gradient(90deg, #ffffff 0%, #ffffff ${percentage}%, rgba(255,255,255,0.0) ${percentage}%, rgba(255,255,255,0.0) 100%)`;
-};
-
-// Visual FX
-const simulateStats = () => {
-  const viewers = Math.floor(Math.random() * (5000 - 100) + 100);
-  const likes = Math.floor(viewers * (Math.random() * 0.8));
-  animateValue(els.listenerCount, 0, viewers, 1000);
-  animateValue(els.likeCount, 0, likes, 1000);
-  els.statsRow.style.opacity = "1";
-};
-
-const animateValue = (obj, start, end, duration) => {
-  let startTimestamp = null;
-  const step = (timestamp) => {
-    if (!startTimestamp) startTimestamp = timestamp;
-    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-    obj.innerHTML = new Intl.NumberFormat().format(Math.floor(progress * (end - start) + start));
-    if (progress < 1) window.requestAnimationFrame(step);
-  };
-  window.requestAnimationFrame(step);
 };
 
 // Media Session API
@@ -346,7 +339,7 @@ const updateMediaSession = () => {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
       artist: currentStation.country + ' · ' + currentStation.region,
-      album: 'Satelital Wave Player v6.4',
+      album: 'Satelital Wave Player v6.6',
     });
     navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1));
     navigator.mediaSession.setActionHandler('nexttrack', () => skipStation(1));
@@ -374,11 +367,7 @@ const setupListeners = () => {
   els.btnPrev.addEventListener("click", () => skipStation(-1));
   els.btnNext.addEventListener("click", () => skipStation(1));
   
-  els.volSlider.addEventListener("input", (e) => {
-    const val = e.target.value;
-    els.player.volume = val;
-    updateVolumeVisuals(val);
-  });
+  // EVENTO DE VOLUMEN ELIMINADO
   
   els.themeSelect.addEventListener("change", (e) => {
     setTheme(e.target.value);
