@@ -7,6 +7,8 @@
   
   <title>Radio Satelital | Ultra Interface v6.5</title>
   
+  <link rel="manifest" href="manifest.json">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
@@ -60,53 +62,37 @@
           <audio id="radioPlayer" preload="none" class="sr-only" crossorigin="anonymous"></audio>
 
           <div class="custom-controls">
-            
             <div class="control-group">
               <button id="btnPrev" class="sec-btn" aria-label="Anterior">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
               </button>
-
               <button id="btnPlay" class="btn-control play-btn" aria-label="Reproducir">
                 <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
               </button>
-
               <button id="btnNext" class="sec-btn" aria-label="Siguiente">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
               </button>
             </div>
-
             <div class="volume-control">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93L15.54 8.46a5 5 0 0 1 0 7.07l3.53 3.53"/></svg>
               <input type="range" id="volSlider" min="0" max="1" step="0.01" value="1">
             </div>
-
           </div>
         </section>
 
         <section class="add-station glass-panel">
-          <div class="panel-head-small">
-            <h3>Agregar Frecuencia</h3>
-          </div>
+          <div class="panel-head-small"><h3>Agregar Frecuencia</h3></div>
           <form id="addStationForm" class="mini-form">
-            <input type="text" id="newStationName" placeholder="Nombre de Radio" required class="input-dark mini">
+            <input type="text" id="newStationName" placeholder="Nombre" required class="input-dark mini">
             <input type="text" id="newStationCountry" placeholder="País" required class="input-dark mini">
-            <input type="url" id="newStationUrl" placeholder="URL Stream (HTTPS)" required class="input-dark mini">
-            <button type="submit" class="btn-action">Guardar Señal</button>
+            <input type="url" id="newStationUrl" placeholder="URL (HTTPS)" required class="input-dark mini">
+            <button type="submit" class="btn-action">Guardar</button>
           </form>
         </section>
 
         <section class="filters glass-panel">
-          <div class="filters-header">
-            <h3>Filtros</h3>
-            <button id="clearFilters" class="btn-text">Reset</button>
-          </div>
+          <div class="filters-header"><h3>Filtros</h3><button id="clearFilters" class="btn-text">Reset</button></div>
           <div class="form-group">
-            <label for="themeSelect" class="input-label">Tema</label>
             <select id="themeSelect" class="input-dark">
               <option value="default">Cyber Dark</option>
               <option value="amoled">Pure AMOLED</option>
@@ -114,16 +100,9 @@
               <option value="purple">Neon Purple</option>
             </select>
           </div>
-          <hr class="separator">
           <div class="filter-row">
-            <div class="form-group">
-              <label for="regionSelect" class="input-label">Región</label>
-              <select id="regionSelect" class="input-dark"></select>
-            </div>
-            <div class="form-group">
-              <label for="countrySelect" class="input-label">País</label>
-              <select id="countrySelect" class="input-dark"></select>
-            </div>
+            <div class="form-group"><select id="regionSelect" class="input-dark"></select></div>
+            <div class="form-group"><select id="countrySelect" class="input-dark"></select></div>
           </div>
         </section>
       </aside>
@@ -131,7 +110,7 @@
       <section class="stations-panel glass-panel">
         <div class="panel-head">
           <h3>Frecuencias</h3>
-          <input id="stationSearch" type="search" placeholder="Buscar señal..." class="input-dark search-input">
+          <input id="stationSearch" type="search" placeholder="Buscar..." class="input-dark search-input">
         </div>
         <div class="fav-toggle-wrap">
           <label class="switch-label">
@@ -139,18 +118,25 @@
             <span class="switch-text">Prioridad Favoritos</span>
           </label>
         </div>
-        
         <div id="stationList" class="station-grid"></div>
       </section>
 
     </div>
   </main>
 
-  <footer class="site-footer">
-    <p>&copy; 2025 Radio Satelital · Community Core</p>
-  </footer>
+  <footer class="site-footer"><p>&copy; 2025 Radio Satelital</p></footer>
 
   <script src="js/stations.js?v=6.5"></script>
   <script src="js/main.js?v=6.5"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA Ready:', reg.scope))
+          .catch(err => console.error('PWA Error:', err));
+      });
+    }
+  </script>
 </body>
 </html>
