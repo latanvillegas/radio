@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#05070a">
   
-  <title>Radio Satelital | Ultra Interface v6.5</title>
+  <title>Radio Satelital | Ultra Interface v6.6</title>
   
   <link rel="manifest" href="manifest.json">
   
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="css/style.css?v=6.5" />
+  <link rel="stylesheet" href="css/style.css?v=6.6" />
 </head>
 
 <body class="page">
@@ -25,7 +25,7 @@
         <div class="brand-icon"><div class="brand-wave"></div></div>
         <div class="brand-text">
           <h1 class="site-title">Satelital</h1>
-          <p class="site-subtitle">Wave Player v6.5</p>
+          <p class="site-subtitle">Wave Player v6.6</p>
         </div>
       </div>
     </div>
@@ -37,28 +37,12 @@
       <aside class="sidebar">
         
         <section class="player-section glass-panel">
-          <div class="player-info">
+          
+          <div class="player-info-container">
             <span class="status-indicator" id="statusIndicator">Ready</span>
-            
-            <div class="track-display">
-                <h2 id="currentStation" class="track-title">Selecciona Emisora</h2>
-                <p id="streamInfo" class="track-artist">Esperando conexión...</p>
-                <div class="meta-badge" id="metaBadge" style="display:none">LIVE</div>
-            </div>
-
-            <div class="stats-row" id="statsRow" style="opacity:0">
-              <div class="stat-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                <span id="listenerCount">0</span>
-              </div>
-              <div class="stat-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                <span id="likeCount">0</span>
-              </div>
-            </div>
+            <div id="timerDisplay" class="timer-text">00:00</div>
           </div>
-
-          <div id="timerDisplay" class="timer-text">00:00</div>
+          
           <audio id="radioPlayer" preload="none" class="sr-only" crossorigin="anonymous"></audio>
 
           <div class="custom-controls">
@@ -74,9 +58,38 @@
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
               </button>
             </div>
-            <div class="volume-control">
-              <input type="range" id="volSlider" min="0" max="1" step="0.01" value="1">
+            
+            <div class="stats-row" id="statsRow">
+              <div class="stat-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span id="listenerCount">0</span>
+              </div>
+              <div class="stat-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <span id="likeCount">0</span>
+              </div>
             </div>
+          </div>
+
+          <div class="track-display-central">
+            <h2 id="streamTrack" class="track-title">Selecciona Emisora</h2>
+            
+            <p id="currentStation" class="track-artist">Estación / Pausa</p>
+            
+            <p id="stationMeta" class="track-meta">País · Región</p>
+            
+            <div class="meta-badge" id="metaBadge" style="display:none">LIVE</div>
+          </div>
+
+          <div class="player-waves-container">
+            <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+              <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" /></defs>
+              <g class="parallax">
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.05" />
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.03)" />
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.01)" />
+              </g>
+            </svg>
           </div>
         </section>
 
@@ -126,8 +139,8 @@
 
   <footer class="site-footer"><p>&copy; 2025 Radio Satelital</p></footer>
 
-  <script src="js/stations.js?v=6.5"></script>
-  <script src="js/main.js?v=6.5"></script>
+  <script src="js/stations.js?v=6.6"></script>
+  <script src="js/main.js?v=6.6"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
