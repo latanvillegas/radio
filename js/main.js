@@ -1,6 +1,6 @@
 // js/main.js
 // =======================
-// SYSTEM CONFIG v7.2 (PWA ENABLED)
+// SYSTEM CONFIG v7.3 (PWA ENABLED - A11Y PATCHED)
 // =======================
 
 const regionClassMap = {
@@ -69,7 +69,7 @@ const init = () => {
   renderList();
   setupListeners();
   
-  console.log(`System Ready v7.2`);
+  console.log(`System Ready v7.3`);
 };
 
 const resetControls = () => {
@@ -229,7 +229,8 @@ const renderList = () => {
     const div = document.createElement("div");
     div.className = `station-card ${isActive ? 'active' : ''} ${animatingClass}`;
     
-    const deleteBtn = st.isCustom ? `<button class="del-btn" title="Eliminar">×</button>` : '';
+    // CORRECCIÓN A11Y: Agregado title y aria-label
+    const deleteBtn = st.isCustom ? `<button class="del-btn" title="Eliminar" aria-label="Eliminar emisora ${st.name}">×</button>` : '';
 
     div.innerHTML = `
       <div class="st-info">
@@ -241,7 +242,7 @@ const renderList = () => {
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         ${deleteBtn}
-        <button class="fav-btn ${isFav ? 'is-fav' : ''}">★</button>
+        <button class="fav-btn ${isFav ? 'is-fav' : ''}" aria-label="${isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}">★</button>
       </div>
     `;
     
@@ -305,7 +306,7 @@ const updateMediaSession = () => {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
       artist: currentStation.country + ' · ' + currentStation.region,
-      album: 'Satelital Wave Player v7.2',
+      album: 'Satelital Wave Player v7.3',
     });
     navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1));
     navigator.mediaSession.setActionHandler('nexttrack', () => skipStation(1));
