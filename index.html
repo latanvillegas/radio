@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Radio Satelital: Escucha emisoras de radio en vivo. Música, noticias y streaming optimizado." />
+  <meta name="description" content="Radio Satelital: Streaming Premium." />
   <meta name="theme-color" content="#05070a">
   
-  <title>Radio Satelital | Ultra Interface v7.8</title>
+  <title>Radio Satelital | Ultra Interface v8.0</title>
   
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="css/style.css?v=7.8" />
+  <link rel="stylesheet" href="css/style.css?v=8.0" />
 </head>
 
 <body class="page">
@@ -22,7 +22,7 @@
   <!-- CAPA OSCURA -->
   <div class="menu-overlay" id="menuOverlay"></div>
 
-  <!-- MENÚ LATERAL -->
+  <!-- MENÚ LATERAL (Con nuevos efectos) -->
   <aside class="side-menu" id="sideMenu">
     <div class="menu-header">
       <h3>Menú</h3>
@@ -33,36 +33,30 @@
     
     <div class="menu-content">
       <!-- PERSONALIZACIÓN -->
-      <div id="optionsSection" class="menu-panel">
+      <div id="optionsSection" class="menu-panel glow-panel">
         <div class="panel-head-small"><h3>Personalización</h3></div>
         <div class="opt-group">
           <label class="opt-label">Modo de Color</label>
           <div class="theme-switcher">
-            <button class="theme-btn active" data-theme="default" style="background:#05070a; border-color:#d32f2f" aria-label="Cyber Dark"></button>
-            <button class="theme-btn" data-theme="amoled" style="background:#000000; border-color:#ffffff" aria-label="AMOLED"></button>
-            <button class="theme-btn" data-theme="gold" style="background:#12100b; border-color:#ffb300" aria-label="Gold Luxury"></button>
-            <button class="theme-btn" data-theme="purple" style="background:#0a0011; border-color:#e040fb" aria-label="Neon Purple"></button>
-            <button class="theme-btn" data-theme="white" style="background:#f8fafc; border-color:#c62828" aria-label="White Mode"></button>
+            <button class="theme-btn active" data-theme="default" style="background:#05070a; border-color:#d32f2f"></button>
+            <button class="theme-btn" data-theme="amoled" style="background:#000000; border-color:#ffffff"></button>
+            <button class="theme-btn" data-theme="gold" style="background:#12100b; border-color:#ffb300"></button>
+            <button class="theme-btn" data-theme="purple" style="background:#0a0011; border-color:#e040fb"></button>
+            <button class="theme-btn" data-theme="white" style="background:#f8fafc; border-color:#c62828"></button>
           </div>
         </div>
         <div class="opt-group">
           <label class="opt-label">Síguenos</label>
           <div class="social-row">
-            <a href="https://facebook.com" target="_blank" class="social-link facebook" aria-label="Facebook">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-            </a>
-            <a href="https://instagram.com" target="_blank" class="social-link instagram" aria-label="Instagram">
-              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-            </a>
-            <a href="https://whatsapp.com" target="_blank" class="social-link whatsapp" aria-label="WhatsApp">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.01-5.212c0-5.45 4.432-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.16 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.89-11.893 0-3.181-1.238-6.167-3.487-8.416"/></svg>
-            </a>
+            <a href="https://facebook.com" target="_blank" class="social-link facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+            <a href="https://instagram.com" target="_blank" class="social-link instagram"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+            <a href="https://whatsapp.com" target="_blank" class="social-link whatsapp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.01-5.212c0-5.45 4.432-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.16 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.89-11.893 0-3.181-1.238-6.167-3.487-8.416"/></svg></a>
           </div>
         </div>
       </div>
       <hr style="border:0; border-top:1px solid var(--border-glass); margin: 2rem 0;">
       <!-- AGREGAR FRECUENCIA -->
-      <div class="menu-panel">
+      <div class="menu-panel glow-panel">
         <div class="panel-head-small"><h3>Agregar Frecuencia</h3></div>
         <form id="addStationForm" class="mini-form">
           <label for="newStationName" class="sr-only">Nombre</label>
@@ -80,10 +74,18 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="brand-mark">
-        <div class="brand-icon"><div class="brand-wave"></div></div>
+        <!-- NUEVO LOGO PREMIUM -->
+        <div class="brand-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="4" fill="white"/>
+                <path d="M16 12L22 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
         <div class="brand-text">
           <h1 class="site-title">Satelital</h1>
-          <p class="site-subtitle">Wave Player v7.8</p>
+          <p class="site-subtitle">Premium Player</p>
         </div>
       </div>
       <button id="btnOptions" class="sec-btn" aria-label="Abrir Menú">
@@ -105,20 +107,19 @@
                 <div class="meta-badge" id="metaBadge" style="display:none">LIVE</div>
             </div>
             
-            <!-- VISUALIZADOR DE AUDIO (NUEVO) -->
             <div class="now-playing-container">
                <div id="audioVisualizer" class="visualizer hidden">
-                 <div class="bar"></div>
-                 <div class="bar"></div>
-                 <div class="bar"></div>
-                 <div class="bar"></div>
-                 <div class="bar"></div>
+                 <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
                </div>
-               <p id="streamTrack" class="track-status">Esperando señal...</p>
+               <p id="streamTrack" class="track-status">Señal Digital</p>
             </div>
           </div>
 
-          <div id="timerDisplay" class="timer-text">00:00</div>
+          <!-- TIMER CENTRADO -->
+          <div class="timer-container">
+            <div id="timerDisplay" class="timer-text">00:00</div>
+          </div>
+          
           <audio id="radioPlayer" preload="none" class="sr-only"></audio>
 
           <div class="custom-controls">
@@ -185,8 +186,8 @@
   </main>
 
   <footer class="site-footer"><p>&copy; 2025 Radio Satelital</p></footer>
-  <script src="js/stations.js?v=7.8"></script>
-  <script src="js/main.js?v=7.8"></script>
+  <script src="js/stations.js?v=8.0"></script>
+  <script src="js/main.js?v=8.0"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
