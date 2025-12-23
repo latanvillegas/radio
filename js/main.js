@@ -1,10 +1,12 @@
-// js/main.js v7.5
-// =======================
-// SYSTEM CONFIG (SIDEBAR MENU + LOGIC)
+// js/main.js v7.6 (FIXED MENU)
 // =======================
 
 const countryClassMap = {
-  "España": "badge-spain", "Francia": "badge-france", "Alemania": "badge-germany", "EE.UU": "badge-usa", "Honduras": "badge-honduras", "Nicaragua": "badge-nicaragua", "Perú": "badge-peru", "Argentina": "badge-argentina", "Chile": "badge-chile", "Colombia": "badge-colombia", "Bolivia": "badge-bolivia", "Venezuela": "badge-venezuela", "Guatemala": "badge-guatemala", "Ecuador": "badge-ecuador", "El Salvador": "badge-elsalvador", "Costa Rica": "badge-costarica", "Puerto Rico": "badge-puertorico", "México": "badge-mexico", "Custom": "badge-custom" 
+  "España": "badge-spain", "Francia": "badge-france", "Alemania": "badge-germany", "EE.UU": "badge-usa", 
+  "Honduras": "badge-honduras", "Nicaragua": "badge-nicaragua", "Perú": "badge-peru", "Argentina": "badge-argentina", 
+  "Chile": "badge-chile", "Colombia": "badge-colombia", "Bolivia": "badge-bolivia", "Venezuela": "badge-venezuela", 
+  "Guatemala": "badge-guatemala", "Ecuador": "badge-ecuador", "El Salvador": "badge-elsalvador", 
+  "Costa Rica": "badge-costarica", "Puerto Rico": "badge-puertorico", "México": "badge-mexico", "Custom": "badge-custom" 
 };
 
 let stations = [];
@@ -14,33 +16,40 @@ let isPlaying = false;
 let timerInterval = null;
 let secondsElapsed = 0;
 
-const els = {
-  player: document.getElementById("radioPlayer"),
-  btnPlay: document.getElementById("btnPlay"),
-  btnPrev: document.getElementById("btnPrev"),
-  btnNext: document.getElementById("btnNext"),
-  status: document.getElementById("statusIndicator"),
-  title: document.getElementById("currentStation"),
-  track: document.getElementById("streamTrack"),
-  meta: document.getElementById("stationMeta"),
-  badge: document.getElementById("metaBadge"),
-  timer: document.getElementById("timerDisplay"),
-  list: document.getElementById("stationList"),
-  search: document.getElementById("stationSearch"),
-  region: document.getElementById("regionSelect"),
-  country: document.getElementById("countrySelect"),
-  favToggle: document.getElementById("favoritesToggle"),
-  clearFilters: document.getElementById("clearFilters"),
-  addForm: document.getElementById("addStationForm"),
-  // MENU ELEMENTS
-  btnOptions: document.getElementById("btnOptions"),
-  btnCloseMenu: document.getElementById("btnCloseMenu"),
-  sideMenu: document.getElementById("sideMenu"),
-  menuOverlay: document.getElementById("menuOverlay")
-};
+// Objeto para elementos del DOM (se llenará al iniciar)
+let els = {};
 
 const init = () => {
-  if (typeof defaultStations === 'undefined') { console.error("defaultStations missing."); return; }
+  console.log("Iniciando Sistema v7.6...");
+  
+  // 1. CAPTURAR ELEMENTOS AHORA (Asegura que existen)
+  els = {
+    player: document.getElementById("radioPlayer"),
+    btnPlay: document.getElementById("btnPlay"),
+    btnPrev: document.getElementById("btnPrev"),
+    btnNext: document.getElementById("btnNext"),
+    status: document.getElementById("statusIndicator"),
+    title: document.getElementById("currentStation"),
+    track: document.getElementById("streamTrack"),
+    meta: document.getElementById("stationMeta"),
+    badge: document.getElementById("metaBadge"),
+    timer: document.getElementById("timerDisplay"),
+    list: document.getElementById("stationList"),
+    search: document.getElementById("stationSearch"),
+    region: document.getElementById("regionSelect"),
+    country: document.getElementById("countrySelect"),
+    favToggle: document.getElementById("favoritesToggle"),
+    clearFilters: document.getElementById("clearFilters"),
+    addForm: document.getElementById("addStationForm"),
+    // Elementos del Menú
+    btnOptions: document.getElementById("btnOptions"),
+    btnCloseMenu: document.getElementById("btnCloseMenu"),
+    sideMenu: document.getElementById("sideMenu"),
+    menuOverlay: document.getElementById("menuOverlay")
+  };
+
+  // 2. CARGAR DATOS
+  if (typeof defaultStations === 'undefined') { console.error("Falta defaultStations."); return; }
   
   try {
     const savedFavs = JSON.parse(localStorage.getItem("ultra_favs") || "[]");
@@ -53,17 +62,22 @@ const init = () => {
     favorites = new Set();
   }
 
+  // 3. APLICAR TEMA
   const savedTheme = localStorage.getItem("ultra_theme") || "default";
   setTheme(savedTheme);
-  const activeBtn = document.querySelector(`.theme-btn[data-theme="${savedTheme}"]`);
-  if(activeBtn) activeBtn.classList.add('active');
+  
+  // Marcar botón activo en el menú (si existe)
+  setTimeout(() => {
+      const activeBtn = document.querySelector(`.theme-btn[data-theme="${savedTheme}"]`);
+      if(activeBtn) activeBtn.classList.add('active');
+  }, 100);
 
   loadFilters();
   resetControls();
   renderList();
   setupListeners();
   
-  console.log(`System Ready v7.5`);
+  console.log(`Sistema Listo v7.6`);
 };
 
 const resetControls = () => {
@@ -87,6 +101,20 @@ const setTheme = (themeName) => {
   }
 };
 
+// --- LOGICA DEL MENÚ LATERAL ---
+const toggleMenu = (show) => {
+  console.log("Menú Toggle:", show); // Debug para ver si funciona
+  if(!els.sideMenu || !els.menuOverlay) return;
+  
+  if(show) {
+    els.sideMenu.classList.add("open");
+    els.menuOverlay.classList.add("open");
+  } else {
+    els.sideMenu.classList.remove("open");
+    els.menuOverlay.classList.remove("open");
+  }
+};
+
 const playStation = (station) => {
   if (currentStation && currentStation.name === station.name) { togglePlay(); return; }
   currentStation = station;
@@ -102,13 +130,13 @@ const playStation = (station) => {
       const p = els.player.play();
       if (p !== undefined) {
         p.then(() => { setPlayingState(true); updateMediaSession(); }).catch(e => {
-          console.error("Playback Failed:", e);
+          console.error("Error Reproducción:", e);
           if(els.track) els.track.innerText = "Offline";
           if(els.status) { els.status.innerText = "ERROR"; els.status.style.color = "#ff3d3d"; }
           setPlayingState(false);
         });
       }
-  } catch (err) { console.error("Critical Audio Error", err); }
+  } catch (err) { console.error("Error Audio Critico", err); }
 };
 
 const togglePlay = () => {
@@ -233,7 +261,7 @@ const updateMediaSession = () => {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
       artist: currentStation.country + ' · ' + currentStation.region,
-      album: 'Satelital Wave Player v7.5',
+      album: 'Satelital Wave Player v7.6',
     });
     navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1));
     navigator.mediaSession.setActionHandler('nexttrack', () => skipStation(1));
@@ -255,25 +283,12 @@ const startTimer = () => {
 };
 const stopTimer = () => { if (timerInterval) clearInterval(timerInterval); };
 
-// --- LÓGICA DEL MENÚ LATERAL ---
-const toggleMenu = (show) => {
-  if(els.sideMenu && els.menuOverlay) {
-    if(show) {
-      els.sideMenu.classList.add("open");
-      els.menuOverlay.classList.add("open");
-    } else {
-      els.sideMenu.classList.remove("open");
-      els.menuOverlay.classList.remove("open");
-    }
-  }
-};
-
 const setupListeners = () => {
   if(els.btnPlay) els.btnPlay.addEventListener("click", togglePlay);
   if(els.btnPrev) els.btnPrev.addEventListener("click", () => skipStation(-1));
   if(els.btnNext) els.btnNext.addEventListener("click", () => skipStation(1));
   
-  // LOGICA BOTONES DE TEMAS
+  // LOGICA TEMAS
   const themeBtns = document.querySelectorAll('.theme-btn');
   themeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -285,8 +300,16 @@ const setupListeners = () => {
     });
   });
 
-  // LOGICA MENÚ
-  if(els.btnOptions) els.btnOptions.addEventListener("click", () => toggleMenu(true));
+  // LOGICA MENÚ (Listeners Blindados)
+  if(els.btnOptions) {
+    els.btnOptions.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleMenu(true);
+    });
+  } else {
+    console.error("Botón de opciones no encontrado");
+  }
+
   if(els.btnCloseMenu) els.btnCloseMenu.addEventListener("click", () => toggleMenu(false));
   if(els.menuOverlay) els.menuOverlay.addEventListener("click", () => toggleMenu(false));
 
@@ -304,4 +327,6 @@ const installBtn = document.getElementById('btnInstall');
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if(installBtn) installBtn.style.display = 'block'; });
 if(installBtn) { installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null; installBtn.style.display = 'none'; } }); }
 window.addEventListener('appinstalled', () => { if(installBtn) installBtn.style.display = 'none'; console.log('PWA Installed'); });
+
+// INICIO SEGURO
 document.addEventListener("DOMContentLoaded", init);
