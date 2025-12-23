@@ -1,4 +1,5 @@
-/* css/style.css v7.5 - MENU LATERAL ORGANIZADO */
+/* css/style.css v7.6 (MENU CORREGIDO)
+   ========================= */
 :root {
   /* DEFAULT (Cyber Dark) */
   --bg-dark: #05070a;
@@ -14,6 +15,8 @@
   --card-hover: rgba(255,255,255,0.08);
   --btn-bg: #ffffff; 
   --btn-text: #000000;
+  
+  /* MEDIDAS TOUCH */
   --touch-target: 48px;
 }
 
@@ -48,7 +51,7 @@ body[data-theme="amoled"] .ambient-bg { display: none; }
 .layout { display: grid; grid-template-columns: 360px 1fr; gap: 2rem; padding-bottom: 4rem; margin-top: 1rem; }
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 
-/* HEADER */
+/* HEADER PRINCIPAL */
 .site-header { padding: 2rem 0 1rem; }
 .header-inner { display: flex; justify-content: space-between; align-items: center; }
 .brand-mark { display: flex; align-items: center; gap: 1rem; }
@@ -61,18 +64,26 @@ body[data-theme="amoled"] .ambient-bg { display: none; }
 .glass-panel { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; position: relative; transition: background 0.3s; }
 .panel-head-small h3 { margin: 0 0 1rem 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
 
-/* --- NUEVO: MENU LATERAL (SIDEBAR) --- */
+/* --- MENU LATERAL (SIDEBAR) --- */
 .side-menu {
-  position: fixed; top: 0; right: -320px;
-  width: 300px; max-width: 85vw; height: 100vh;
+  position: fixed; 
+  top: 0; 
+  right: -320px; /* Inicialmente oculto a la derecha */
+  width: 300px; 
+  max-width: 85vw; 
+  height: 100vh;
   background: var(--bg-dark); /* Fondo sólido para legibilidad */
   border-left: 1px solid var(--border-glass);
-  z-index: 1000;
+  z-index: 1000; /* Siempre encima */
   transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex; flex-direction: column;
   box-shadow: -10px 0 40px rgba(0,0,0,0.6);
 }
-.side-menu.open { right: 0; }
+
+/* Clase que activa el menú (JS añade esta clase) */
+.side-menu.open { 
+  right: 0; 
+}
 
 .menu-header {
   padding: 1.5rem;
@@ -85,12 +96,21 @@ body[data-theme="amoled"] .ambient-bg { display: none; }
 .menu-content { flex: 1; overflow-y: auto; padding: 1.5rem; }
 .menu-panel { margin-bottom: 2rem; }
 
+/* Capa Oscura de Fondo */
 .menu-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-  z-index: 999; opacity: 0; pointer-events: none;
-  transition: opacity 0.3s; backdrop-filter: blur(3px);
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,0.7);
+  z-index: 999; 
+  opacity: 0; 
+  pointer-events: none;
+  transition: opacity 0.3s; 
+  backdrop-filter: blur(3px);
 }
-.menu-overlay.open { opacity: 1; pointer-events: all; }
+.menu-overlay.open { 
+  opacity: 1; 
+  pointer-events: all; 
+}
 
 /* PLAYER */
 .player-section { 
