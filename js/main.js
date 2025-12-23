@@ -1,4 +1,6 @@
-// js/main.js v7.8
+// js/main.js v7.9 (FORCE UI UPDATE)
+// =======================
+
 const countryClassMap = {
   "España": "badge-spain", "Francia": "badge-france", "Alemania": "badge-germany", "EE.UU": "badge-usa", 
   "Honduras": "badge-honduras", "Nicaragua": "badge-nicaragua", "Perú": "badge-peru", "Argentina": "badge-argentina", 
@@ -68,21 +70,41 @@ const init = () => {
   setupAudioListeners();
 };
 
+// --- EVENTOS DE AUDIO (Buffering y Error) ---
 const setupAudioListeners = () => {
   if(!els.player) return;
+
+  // Si el navegador confirma que está sonando, reforzamos la UI
   els.player.addEventListener('playing', () => {
-    if(els.visualizer) els.visualizer.classList.add('playing-audio'); 
-    if(els.status) { els.status.innerText = "EN VIVO"; els.status.className = "status-indicator live"; }
-    if(els.track) els.track.innerText = "Señal Digital • En Vivo";
+    // Solo actualizamos si ya hemos dado la orden de play
+    if(isPlaying) updateUIAsPlaying();
   });
+
+  // Si se queda cargando (Buffering)
   els.player.addEventListener('waiting', () => {
     if(els.visualizer) els.visualizer.classList.remove('playing-audio'); 
     if(els.status) { els.status.innerText = "BUFFERING..."; els.status.className = "status-indicator"; }
-    if(els.track) els.track.innerText = "Sincronizando...";
+    if(els.track) els.track.innerText = "Sincronizando señal...";
   });
+
   els.player.addEventListener('pause', () => {
     if(els.visualizer) els.visualizer.classList.remove('playing-audio');
   });
+};
+
+// FUNCIÓN DE AYUDA PARA ACTUALIZAR UI A "EN VIVO"
+const updateUIAsPlaying = () => {
+    if(els.status) { els.status.innerText = "EN VIVO"; els.status.className = "status-indicator live"; }
+    if(els.badge) els.badge.style.display = "inline-block";
+    
+    // AQUÍ FORZAMOS EL TEXTO Y EL VISUALIZADOR
+    if(els.visualizer) {
+        els.visualizer.classList.remove("hidden");
+        els.visualizer.classList.add("playing-audio"); // Barras bailando
+    }
+    if(els.track) els.track.innerText = "Señal Digital • En Vivo";
+    
+    startTimer();
 };
 
 const resetControls = () => {
@@ -115,12 +137,13 @@ const toggleMenu = (show) => {
 const playStation = (station) => {
   if (currentStation && currentStation.name === station.name) { togglePlay(); return; }
   currentStation = station;
+  
   if(els.title) els.title.innerText = station.name;
   if(els.meta) els.meta.innerText = `${station.country} · ${station.region}`;
   
+  // Estado inicial: Conectando
   if(els.track) els.track.innerText = "Conectando...";
   if(els.visualizer) { els.visualizer.classList.remove("hidden"); els.visualizer.classList.remove("playing-audio"); }
-  
   if(els.status) { els.status.innerText = "CONECTANDO..."; els.status.style.color = ""; }
   if(els.badge) els.badge.style.display = "none";
   stopTimer(); if(els.timer) els.timer.innerText = "00:00";
@@ -129,8 +152,13 @@ const playStation = (station) => {
       els.player.src = station.url; els.player.volume = 1; 
       const p = els.player.play();
       if (p !== undefined) {
-        p.then(() => { setPlayingState(true); updateMediaSession(); }).catch(e => {
-          if(els.track) els.track.innerText = "Offline";
+        p.then(() => { 
+            // PROMESA CUMPLIDA: FORZAMOS UI INMEDIATAMENTE
+            setPlayingState(true); 
+            updateMediaSession(); 
+        }).catch(e => {
+          console.error("Error al reproducir:", e);
+          if(els.track) els.track.innerText = "Estación Offline";
           if(els.status) { els.status.innerText = "ERROR"; els.status.style.color = "#ff3d3d"; }
           setPlayingState(false);
         });
@@ -146,16 +174,22 @@ const togglePlay = () => {
 const setPlayingState = (playing) => {
   isPlaying = playing;
   if(els.btnPlay) { if (playing) els.btnPlay.classList.add("playing"); else els.btnPlay.classList.remove("playing"); }
+
   if (playing) {
-    if(els.badge) els.badge.style.display = "inline-block";
-    if(els.visualizer) els.visualizer.classList.remove("hidden");
-    startTimer();
+    // Si la promesa de Play se cumplió, actualizamos la UI
+    updateUIAsPlaying();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
   } else {
+    // Pausado
     if(els.status) { els.status.innerText = "PAUSADO"; els.status.classList.remove("live"); }
     if(els.badge) els.badge.style.display = "none";
-    if(els.visualizer) els.visualizer.classList.add("hidden");
+    
+    if(els.visualizer) {
+        els.visualizer.classList.remove("playing-audio"); // Detener animación
+        els.visualizer.classList.add("hidden"); // Ocultar
+    }
     if(els.track) els.track.innerText = "Pausado";
+    
     stopTimer();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   }
@@ -196,7 +230,9 @@ const renderList = () => {
     const isActive = currentStation && currentStation.name === st.name;
     const isFav = favorites.has(st.name);
     const badgeClass = countryClassMap[st.country] || "badge-default"; 
-    const animatingClass = (isActive && !els.player.paused && !els.player.waiting) ? 'animating' : '';
+    // Animación: si está "active" y "isPlaying", animamos la tarjeta
+    const animatingClass = (isActive && isPlaying) ? 'animating' : '';
+    
     const div = document.createElement("div");
     div.className = `station-card ${isActive ? 'active' : ''} ${animatingClass}`;
     const deleteBtn = st.isCustom ? `<button class="del-btn" title="Eliminar" aria-label="Eliminar emisora ${st.name}">×</button>` : '';
@@ -215,7 +251,7 @@ const renderList = () => {
 const addCustomStation = (e) => { e.preventDefault(); const name = document.getElementById("newStationName").value.trim(); const country = document.getElementById("newStationCountry").value.trim(); const url = document.getElementById("newStationUrl").value.trim(); if(name && url) { const newStation = { name, country, region: "Custom", url, isCustom: true }; const customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]"); customStations.push(newStation); localStorage.setItem("ultra_custom", JSON.stringify(customStations)); location.reload(); } };
 const deleteCustomStation = (e, stationName) => { e.stopPropagation(); if(confirm(`¿Eliminar ${stationName}?`)) { let customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]"); customStations = customStations.filter(s => s.name !== stationName); localStorage.setItem("ultra_custom", JSON.stringify(customStations)); location.reload(); } };
 const loadFilters = () => { if(!els.region || !els.country) return; const regions = ["Todas", ...new Set(stations.map(s => s.region))].sort(); const countries = ["Todos", ...new Set(stations.map(s => s.country))].sort(); const fill = (sel, arr) => { sel.innerHTML = ""; arr.forEach(val => { const opt = document.createElement("option"); opt.value = val; opt.innerText = val; sel.appendChild(opt); }); }; fill(els.region, regions); fill(els.country, countries); };
-const updateMediaSession = () => { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: currentStation.name, artist: currentStation.country + ' · ' + currentStation.region, album: 'Satelital Wave Player v7.8', }); navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1)); navigator.mediaSession.setActionHandler('nexttrack', () => skipStation(1)); navigator.mediaSession.setActionHandler('play', () => { els.player.play(); setPlayingState(true); }); navigator.mediaSession.setActionHandler('pause', () => { els.player.pause(); setPlayingState(false); }); } };
+const updateMediaSession = () => { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: currentStation.name, artist: currentStation.country + ' · ' + currentStation.region, album: 'Satelital Wave Player v7.9', }); navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1)); navigator.mediaSession.setActionHandler('nexttrack', () => skipStation(1)); navigator.mediaSession.setActionHandler('play', () => { els.player.play(); setPlayingState(true); }); navigator.mediaSession.setActionHandler('pause', () => { els.player.pause(); setPlayingState(false); }); } };
 const startTimer = () => { stopTimer(); secondsElapsed = 0; if(els.timer) { els.timer.innerText = "00:00"; timerInterval = setInterval(() => { secondsElapsed++; const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0'); const s = (secondsElapsed % 60).toString().padStart(2, '0'); els.timer.innerText = `${m}:${s}`; }, 1000); } };
 const stopTimer = () => { if (timerInterval) clearInterval(timerInterval); };
 const setupListeners = () => {
