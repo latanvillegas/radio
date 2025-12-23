@@ -3,7 +3,7 @@
 // SYSTEM CONFIG v7.3 (PWA ENABLED - A11Y PATCHED)
 // =======================
 
-// MAPA DE ASIGNACIÓN DE CLASES DE COLOR POR PAÍS (Implementación de la solicitud)
+// MAPA DE ASIGNACIÓN DE CLASES DE COLOR POR PAÍS
 const countryClassMap = {
   "España": "badge-spain", 
   "Francia": "badge-france",
@@ -32,7 +32,6 @@ let currentStation = null;
 let isPlaying = false;
 let timerInterval = null;
 let secondsElapsed = 0;
-let metadataInterval = null;
 
 const els = {
   player: document.getElementById("radioPlayer"),
@@ -53,8 +52,12 @@ const els = {
   country: document.getElementById("countrySelect"),
   favToggle: document.getElementById("favoritesToggle"),
   clearFilters: document.getElementById("clearFilters"),
-  themeSelect: document.getElementById("themeSelect"),
-  addForm: document.getElementById("addStationForm")
+  addForm: document.getElementById("addStationForm"),
+
+  // NUEVOS ELEMENTOS DEL MENÚ
+  settingsBtn: document.getElementById("settingsTrigger"),
+  settingsMenu: document.getElementById("settingsMenu"),
+  themeBtns: document.querySelectorAll(".theme-btn")
 };
 
 const init = () => {
@@ -76,7 +79,7 @@ const init = () => {
 
   const savedTheme = localStorage.getItem("ultra_theme") || "default";
   setTheme(savedTheme);
-  if(els.themeSelect) els.themeSelect.value = savedTheme;
+  updateActiveThemeBtn(savedTheme); // Marcar botón activo visualmente
 
   loadFilters();
   resetControls();
@@ -93,13 +96,25 @@ const resetControls = () => {
   if(els.favToggle) els.favToggle.checked = false;
 };
 
+// Lógica Visual para los botones de tema
+const updateActiveThemeBtn = (themeName) => {
+    if(!els.themeBtns) return;
+    els.themeBtns.forEach(btn => {
+        if(btn.dataset.theme === themeName) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
+    });
+};
+
 const setTheme = (themeName) => {
   document.body.setAttribute("data-theme", themeName === "default" ? "" : themeName);
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if(metaTheme) {
       switch(themeName) {
           case 'amoled': metaTheme.setAttribute("content", "#000000"); break;
-          case 'white': metaTheme.setAttribute("content", "#f2f4f7"); break; 
+          case 'white': metaTheme.setAttribute("content", "#f8fafc"); break; 
           case 'gold': metaTheme.setAttribute("content", "#12100b"); break;
           case 'purple': metaTheme.setAttribute("content", "#0a0011"); break;
           default: metaTheme.setAttribute("content", "#05070a");
@@ -237,16 +252,12 @@ const renderList = () => {
   filtered.forEach(st => {
     const isActive = currentStation && currentStation.name === st.name;
     const isFav = favorites.has(st.name);
-    
-    // ASIGNACIÓN DE CLASE POR PAÍS: usa countryClassMap
     const badgeClass = countryClassMap[st.country] || "badge-default"; 
-    
     const animatingClass = (isActive && isPlaying) ? 'animating' : '';
 
     const div = document.createElement("div");
     div.className = `station-card ${isActive ? 'active' : ''} ${animatingClass}`;
     
-    // CORRECCIÓN A11Y: Agregado title y aria-label
     const deleteBtn = st.isCustom ? `<button class="del-btn" title="Eliminar" aria-label="Eliminar emisora ${st.name}">×</button>` : '';
 
     div.innerHTML = `
@@ -295,6 +306,7 @@ const addCustomStation = (e) => {
     location.reload(); 
   }
 };
+
 const deleteCustomStation = (e, stationName) => {
   e.stopPropagation();
   if(confirm(`¿Eliminar ${stationName}?`)) {
@@ -304,6 +316,7 @@ const deleteCustomStation = (e, stationName) => {
     location.reload();
   }
 };
+
 const loadFilters = () => {
   if(!els.region || !els.country) return;
   const regions = ["Todas", ...new Set(stations.map(s => s.region))].sort();
@@ -318,6 +331,7 @@ const loadFilters = () => {
   fill(els.region, regions);
   fill(els.country, countries);
 };
+
 const updateMediaSession = () => {
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -331,6 +345,7 @@ const updateMediaSession = () => {
     navigator.mediaSession.setActionHandler('pause', () => { els.player.pause(); setPlayingState(false); });
   }
 };
+
 const startTimer = () => {
   stopTimer(); secondsElapsed = 0;
   if(els.timer) {
@@ -344,14 +359,40 @@ const startTimer = () => {
   }
 };
 const stopTimer = () => { if (timerInterval) clearInterval(timerInterval); };
+
 const setupListeners = () => {
   if(els.btnPlay) els.btnPlay.addEventListener("click", togglePlay);
   if(els.btnPrev) els.btnPrev.addEventListener("click", () => skipStation(-1));
   if(els.btnNext) els.btnNext.addEventListener("click", () => skipStation(1));
-  if(els.themeSelect) els.themeSelect.addEventListener("change", (e) => {
-    setTheme(e.target.value);
-    localStorage.setItem("ultra_theme", e.target.value);
-  });
+  
+  // LOGICA DEL NUEVO MENÚ DE AJUSTES
+  if(els.settingsBtn && els.settingsMenu) {
+      els.settingsBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          els.settingsMenu.classList.toggle("hidden");
+      });
+      // Cerrar menú al hacer clic fuera
+      document.addEventListener("click", (e) => {
+          if(!els.settingsMenu.classList.contains("hidden") && 
+             !els.settingsMenu.contains(e.target) && 
+             !els.settingsBtn.contains(e.target)) {
+             els.settingsMenu.classList.add("hidden");
+          }
+      });
+  }
+
+  // LOGICA DE LOS BOTONES DE TEMA
+  if(els.themeBtns) {
+      els.themeBtns.forEach(btn => {
+          btn.addEventListener("click", () => {
+              const theme = btn.dataset.theme;
+              setTheme(theme);
+              localStorage.setItem("ultra_theme", theme);
+              updateActiveThemeBtn(theme);
+          });
+      });
+  }
+
   if(els.search) els.search.addEventListener("input", renderList);
   if(els.region) els.region.addEventListener("input", renderList);
   if(els.country) els.country.addEventListener("input", renderList);
@@ -370,10 +411,8 @@ let deferredPrompt;
 const installBtn = document.getElementById('btnInstall');
 
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Prevenir banner automático
   e.preventDefault();
   deferredPrompt = e;
-  // Mostrar botón
   if(installBtn) installBtn.style.display = 'block';
 });
 
