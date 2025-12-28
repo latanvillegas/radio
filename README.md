@@ -23,15 +23,14 @@ Un reproductor de radio web moderno, personalizable y de alto rendimiento. Permi
 
 El proyecto está organizado de la siguiente manera para una fácil navegación y mantenimiento:
 
-
 / (Carpeta Raíz)
-├── README.md
-├── index.html
-├── manifest.json
-├── sw.js
+├── README.md # Este archivo.
+├── index.html # Archivo principal que contiene la estructura de la aplicación.
 ├── css/
-│   └── style.css
-└── js/
-    ├── main.js
-    └── stations.js
+│ └── style.css # Hoja de estilos principal para el diseño y los temas.
+├── js/
+│ ├── main.js # Contiene la lógica principal del reproductor, eventos y manipulación del DOM.
+│ └── stations.js # Funciona como una base de datos para las emisoras de radio.
+├── manifest.json # Archivo de manifiesto para la configuración de la PWA.
+└── sw.js # Service Worker que gestiona el caché y el funcionamiento offline.
 
