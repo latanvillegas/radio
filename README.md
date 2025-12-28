@@ -34,3 +34,33 @@ El proyecto está organizado de la siguiente manera para una fácil navegación 
 ├── manifest.json # Archivo de manifiesto para la configuración de la PWA.
 └── sw.js # Service Worker que gestiona el caché y el funcionamiento offline.
 
+## ⚙️ Instalación y Uso
+
+No se requiere una instalación compleja. Para ejecutar el proyecto localmente, sigue estos pasos:
+
+1.  Clona o descarga este repositorio en tu computadora.
+2.  Navega a la carpeta del proyecto.
+3.  Abre el archivo `index.html` directamente en tu navegador web preferido (como Chrome, Firefox, etc.).
+
+¡Y eso es todo! El reproductor cargará las emisoras definidas en `js/stations.js` y estará listo para usar.
+
+## 🎨 Personalización
+
+Puedes personalizar fácilmente varios aspectos del reproductor:
+
+-   **Cambiar el Logo:** El logo es un ícono SVG y se encuentra directamente en el `index.html`, dentro de la etiqueta `<header>`. Puedes reemplazar el código `<svg class="brand-logo" ...>` por tu propio SVG o por una etiqueta `<img>`.
+
+-   **Añadir Redes Sociales:** Los enlaces a las redes sociales están en la sección `<aside class="side-menu">` del `index.html`. Simplemente añade o modifica las etiquetas `<a>` correspondientes.
+
+-   **Añadir Emisoras de Radio:** Para añadir más emisoras de forma permanente, edita el archivo `js/stations.js` y agrega un nuevo objeto al array `stations` con el siguiente formato:
+    ```javascript
+    {
+      name: "Nombre de la Radio",
+      country: "País",
+      url: "https://url-del-streaming.com"
+    }
+    ```
+
+## ✒️ Autor
+
+-   **AVELINO LATAN VILLEGAS**
