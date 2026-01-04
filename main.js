@@ -1,4 +1,4 @@
-// main.js v8.0 (NOTIFICACIONES PRO + LIVE STATUS)
+// main.js v8.2 (FIX NOTIFICACIÓN PERSISTENTE)
 // =======================
 
 const countryClassMap = {
@@ -20,7 +20,7 @@ let secondsElapsed = 0;
 let els = {};
 
 const init = () => {
-  console.log("Iniciando Sistema v8.0...");
+  console.log("Iniciando Sistema v8.2...");
   
   els = {
     player: document.getElementById("radioPlayer"),
@@ -66,17 +66,19 @@ const init = () => {
       if(activeBtn) activeBtn.classList.add('active');
   }, 100);
 
+  // Inicializar Handlers de Media Session UNA SOLA VEZ al inicio
+  setupMediaSessionHandlers();
+
   loadFilters();
   resetControls();
   renderList();
   setupListeners();
   
-  // Inicializar audio context para evitar bloqueos
   if (els.player) {
     els.player.crossOrigin = "anonymous";
   }
 
-  console.log(`Sistema Listo v8.0`);
+  console.log(`Sistema Listo v8.2`);
 };
 
 const resetControls = () => {
@@ -112,24 +114,35 @@ const toggleMenu = (show) => {
 };
 
 const playStation = (station) => {
+  // Si es la misma, pausamos/reproducimos
   if (currentStation && currentStation.name === station.name) { togglePlay(); return; }
+  
   currentStation = station;
+  
+  // 1. ACTUALIZAR UI VISUAL
   if(els.title) els.title.innerText = station.name;
   if(els.meta) els.meta.innerText = `${station.country} · ${station.region}`;
-  if(els.status) { els.status.innerText = "BUFFERING..."; els.status.style.color = ""; }
+  if(els.status) { els.status.innerText = "CONECTANDO..."; els.status.style.color = ""; }
   if(els.badge) els.badge.style.display = "none";
   
+  // 2. ACTUALIZAR NOTIFICACIÓN INMEDIATAMENTE (CRÍTICO PARA QUE NO DESAPAREZCA)
+  // Le decimos a Android "Hey, estoy tocando esto" antes de cargar el audio real.
+  updateMediaSessionMetadata();
+  if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'playing';
+  }
+
   if(els.timer) els.timer.innerText = "00:00";
   stopTimer(); 
 
   try {
-      els.player.src = station.url; els.player.volume = 1; 
+      els.player.src = station.url; 
+      els.player.volume = 1; 
+      
       const p = els.player.play();
       if (p !== undefined) {
         p.then(() => { 
           setPlayingState(true); 
-          // Actualizamos la notificación inmediatamente al empezar a cargar
-          updateMediaSession(); 
         }).catch(e => {
           console.error("Error Reproducción:", e);
           if(els.status) { els.status.innerText = "ERROR"; els.status.style.color = "#ff3d3d"; }
@@ -141,7 +154,13 @@ const playStation = (station) => {
 
 const togglePlay = () => {
   if (!currentStation) { if(stations.length > 0) playStation(stations[0]); return; }
-  if (els.player.paused) { els.player.play(); setPlayingState(true); } else { els.player.pause(); setPlayingState(false); }
+  if (els.player.paused) { 
+    els.player.play(); 
+    setPlayingState(true); 
+  } else { 
+    els.player.pause(); 
+    setPlayingState(false); 
+  }
 };
 
 const setPlayingState = (playing) => {
@@ -157,20 +176,14 @@ const setPlayingState = (playing) => {
     startTimer(true);
     if(!navigator.onLine && timerInterval) clearInterval(timerInterval);
     
-    // Le decimos a Android que estamos sonando
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'playing';
-    }
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 
   } else {
     if(els.status) { els.status.innerText = "PAUSADO"; els.status.classList.remove("live"); }
     if(els.badge) els.badge.style.display = "none";
     stopTimer();
     
-    // Le decimos a Android que estamos pausados
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'paused';
-    }
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   }
   renderList(); 
 };
@@ -188,26 +201,11 @@ const skipStation = (direction) => {
   playStation(stations[newIndex]);
 };
 
-// --- AQUÍ ESTÁ LA MAGIA DE LA NOTIFICACIÓN MEJORADA ---
-const updateMediaSession = () => {
-  if ('mediaSession' in navigator && currentStation) {
-    
-    // 1. Definimos la imagen. Usamos icon-512.png porque es grande.
-    // Android usará los colores de esta imagen para pintar el fondo de la notificación.
-    // Si tu icono es blanco y negro, el fondo será gris. ¡Usa un logo colorido para tener fondo de color!
-    const artworkImage = [
-      { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
-    ];
+// --- GESTIÓN DE NOTIFICACIONES ---
 
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentStation.name,
-      artist: currentStation.country, // Muestra el país como artista
-      album: 'Radio Satelital En Vivo',
-      artwork: artworkImage
-    });
-
-    // 2. Manejadores de botones (Para que funcionen en la notificación)
+// Configurar los botones UNA SOLA VEZ al inicio
+const setupMediaSessionHandlers = () => {
+  if ('mediaSession' in navigator) {
     navigator.mediaSession.setActionHandler('play', () => { 
       els.player.play(); 
       setPlayingState(true); 
@@ -219,13 +217,31 @@ const updateMediaSession = () => {
     navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1));
     navigator.mediaSession.setActionHandler('nexttrack', () => skipStation(1));
     
-    // 3. Quitar el "00:00" estático (Truco para Radio en Vivo)
-    // Al no definir duración ni posición, algunos Androids muestran "LIVE" o ocultan la barra.
-    try {
-        navigator.mediaSession.setPositionState(null);
-    } catch(e) {
-        // Fallback para navegadores viejos
-    }
+    // Handler para "Stop" (algunos auriculares lo envían)
+    navigator.mediaSession.setActionHandler('stop', () => {
+       els.player.pause();
+       setPlayingState(false);
+    });
+  }
+};
+
+// Actualizar solo TEXTO e IMAGEN al cambiar canción
+const updateMediaSessionMetadata = () => {
+  if ('mediaSession' in navigator && currentStation) {
+    const artworkImage = [
+      { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
+    ];
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentStation.name,
+      artist: currentStation.country,
+      album: 'Radio Satelital En Vivo',
+      artwork: artworkImage
+    });
+
+    // Eliminar la barra de tiempo (Fix para Live Radio)
+    try { navigator.mediaSession.setPositionState(null); } catch(e) {}
   }
 };
 
