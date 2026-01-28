@@ -68,6 +68,8 @@ Descarga la aplicación nativa sin publicidad y con todas las funciones desbloqu
 ├── stations.js       # Base de datos de emisoras
 └── assets/           # Iconos e imágenes
 
+---
+
 👤 Autor y Contacto
 Desarrollado con ❤️ por Latán Villegas Avelino.
  * Redes: Integradas en la aplicación (Menú Lateral).
