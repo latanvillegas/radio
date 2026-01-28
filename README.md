@@ -74,5 +74,6 @@ Descarga la aplicación nativa sin publicidad y con todas las funciones desbloqu
 Desarrollado con ❤️ por Latán Villegas Avelino.
  * Redes: Integradas en la aplicación (Menú Lateral).
  * Estado: Activo y en desarrollo constante.
+
 **© 2026 Radio Satelital. Todos los derechos reservados.**
 
