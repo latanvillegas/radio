@@ -30,6 +30,7 @@
     }
   ],
   "handle_links": "preferred",
+  "new_note_url": "/index.html?action=note",
   "icons": [
     {
       "src": "icon-192.png",
@@ -145,6 +146,7 @@
     "client_mode": "navigate-existing"
   },
   "display_override": [
+    "tabbed",
     "window-controls-overlay",
     "standalone",
     "minimal-ui"
