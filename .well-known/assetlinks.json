@@ -1,1 +1,8 @@
-
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "online.latanvillegas.twa",
+    "sha256_cert_fingerprints": ["33:5E:98:49:BA:D9:F8:37:F3:ED:13:36:25:4A:B2:D1:B5:86:CD:27:59:5A:FF:3C:93:9C:38:19:40:BA:B1:AD"]
+  }
+}]
