@@ -71,25 +71,33 @@ Descarga la aplicación nativa sin publicidad y con todas las funciones desbloqu
 ```
 
 ## 🤝 Colaboraciones
-¡Este proyecto está abierto a la comunidad! Si eres desarrollador o tienes ideas para mejorar Radio Satelital, tu ayuda es bienvenida.
+
+¡Este proyecto está abierto a la comunidad! Si eres desarrollador o tienes ideas para mejorar **Radio Satelital**, tu ayuda es bienvenida.
+
 Puedes contribuir de las siguientes formas:
- * 🐛 Reportar Errores: Si encuentras algún fallo, abre un Issue detallando el problema.
- * 💡 Sugerir Funciones: ¿Se te ocurre algo nuevo? Compártelo en la sección de Issues.
- * 💻 Pull Requests: Si mejoras el código, envía tu solicitud para integrarla al proyecto.
- * ⭐ Deja una Estrella: Si te gusta el proyecto, ¡apóyanos dando clic en la estrella (Star) arriba a la derecha!
+* 🐛 **Reportar Errores:** Si encuentras algún fallo, abre un [Issue](https://github.com/LatanVillegasAvelino/Radio-Satelital-Latan-Villegas/issues) detallando el problema.
+* 💡 **Sugerir Funciones:** ¿Se te ocurre algo nuevo? Compártelo en la sección de Issues.
+* 💻 **Pull Requests:** Si mejoras el código, envía tu solicitud para integrarla al proyecto.
+* ⭐ **Deja una Estrella:** Si te gusta el proyecto, ¡apóyanos dando clic en la estrella (Star) arriba a la derecha!
 
-   
-## 👤 Autor y Contacto
-Desarrollado con ❤️ por Latán Villegas Avelino.
- * Redes: Integradas en la aplicación (Menú Lateral).
- * Estado: Activo y en desarrollo constante.
-   
+---
+
 ## ☕ Apoyo al Desarrollador
-¿Te gusta Radio Satelital? Si valoras este proyecto y quieres motivar futuras actualizaciones, ¡invítame un café!
-<a href="https://www.google.com/search?q=https://www.paypal.com/cgi-bin/webscr%3Fcmd%3D_donations%26business%3Dalv.oficial123%40gmail.com%26currency_code%3DUSD%26source%3Durl">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Hacer%2520Donaci%25C3%25B3n-PayPal-blue%3Fstyle%3Dfor-the-badge%26logo%3Dpaypal" alt="Donar con PayPal" />
-</a>
- * Cuenta: alv.oficial123@gmail.com
- * 
-**© 2026 Radio Satelital. Todos los derechos reservados.**
 
+¿Te gusta **Radio Satelital**? Si valoras este proyecto y quieres motivar futuras actualizaciones, ¡invítame un café!
+
+[![Donar con PayPal](https://img.shields.io/badge/Hacer%20Donaci%C3%B3n-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=alv.oficial123@gmail.com&currency_code=USD&source=url)
+
+* **Cuenta:** `alv.oficial123@gmail.com`
+
+---
+
+## 👤 Autor y Contacto
+
+Desarrollado con ❤️ por **Latán Villegas Avelino**.
+
+* **Redes:** Integradas en la aplicación (Menú Lateral).
+* **Estado:** Activo y en desarrollo constante.
+
+---
+© 2026 Radio Satelital. Todos los derechos reservados.
