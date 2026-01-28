@@ -10,9 +10,9 @@ const CACHE_NAME = 'radio-satelital-v8.5';
 const ASSETS = [
   './',
   './index.html',
-  './style.css?v=8.3', /* Aseguramos que cachee la versión actual */
-  './main.js?v=8.4',
-  './stations.js?v=8.3',
+  './style.css?v=8.5',
+  './main.js?v=8.5',
+  './stations.js?v=8.5',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
@@ -44,7 +44,7 @@ self.addEventListener('activate', (e) => {
 
 // 3. FETCH (Estrategia Cache First)
 self.addEventListener('fetch', (e) => {
-  // No cachear streams de audio
+  // No cachear streams de audio para evitar problemas de reproducción
   if (e.request.url.includes('.mp3') || e.request.url.includes('stream') || e.request.url.includes('icecast')) {
     return; 
   }
@@ -52,7 +52,7 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((res) => {
       return res || fetch(e.request).catch(() => {
-        // Fallback offline simple si falla la red
+        // Fallback offline si falla la red y es navegación
         if (e.request.mode === 'navigate') {
           return caches.match('./index.html');
         }
@@ -70,7 +70,7 @@ self.addEventListener('sync', (event) => {
 
 async function syncStations() {
   console.log('Sincronizando emisoras en segundo plano...');
-  // Aquí iría la lógica real de reconexión o envío de datos
+  // Aquí iría la lógica real de reconexión
 }
 
 // 5. PERIODIC SYNC (Actualización de contenido en segundo plano)
@@ -82,7 +82,7 @@ self.addEventListener('periodicsync', (event) => {
 
 async function updateContent() {
   console.log('Actualizando contenido periódicamente...');
-  // Lógica para actualizar cachés en segundo plano
+  // Lógica para refrescar la caché
 }
 
 // 6. NOTIFICACIONES PUSH (Re-engagement)
