@@ -90,5 +90,6 @@ Desarrollado con ❤️ por Latán Villegas Avelino.
 <img src="https://www.google.com/search?q=https://img.shields.io/badge/Hacer%2520Donaci%25C3%25B3n-PayPal-blue%3Fstyle%3Dfor-the-badge%26logo%3Dpaypal" alt="Donar con PayPal" />
 </a>
  * Cuenta: alv.oficial123@gmail.com
-© 2026 Radio Satelital. Todos los derechos reservados.
+ * 
+**© 2026 Radio Satelital. Todos los derechos reservados.**
 
