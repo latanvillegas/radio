@@ -70,7 +70,7 @@ Descarga la aplicación nativa sin publicidad y con todas las funciones desbloqu
 
 ```
 
-👤 Autor y Contacto
+###👤 Autor y Contacto
 Desarrollado con ❤️ por Latán Villegas Avelino.
  * Redes: Integradas en la aplicación (Menú Lateral).
  * Estado: Activo y en desarrollo constante.
