@@ -1,5 +1,5 @@
-// main.js v8.0 (WEAR THEMES & NOTIFICATION FIX)
-// =======================
+// main.js v8.1 (SCROLL FIX & PERFORMANCE)
+// =======================================
 
 const countryClassMap = {
   "España": "badge-spain", "Francia": "badge-france", "Alemania": "badge-germany", "EE.UU": "badge-usa", 
@@ -16,11 +16,10 @@ let isPlaying = false;
 let timerInterval = null;
 let secondsElapsed = 0;
 
-// Objeto para elementos del DOM
 let els = {};
 
 const init = () => {
-  console.log("Iniciando Sistema v8.0...");
+  console.log("Satelital Wave Player v8.1 - Cargando...");
   
   els = {
     player: document.getElementById("radioPlayer"),
@@ -30,367 +29,207 @@ const init = () => {
     status: document.getElementById("statusIndicator"),
     title: document.getElementById("currentStation"),
     meta: document.getElementById("stationMeta"),
-    badge: document.getElementById("metaBadge"),
     timer: document.getElementById("timerDisplay"),
     list: document.getElementById("stationList"),
     search: document.getElementById("stationSearch"),
     region: document.getElementById("regionSelect"),
     country: document.getElementById("countrySelect"),
-    favToggle: document.getElementById("favoritesToggle"),
     clearFilters: document.getElementById("clearFilters"),
-    addForm: document.getElementById("addStationForm"),
+    badge: document.getElementById("metaBadge"),
+    favToggle: document.getElementById("favoritesToggle"),
+    sideMenu: document.getElementById("sideMenu"),
+    menuOverlay: document.getElementById("menuOverlay"),
     btnOptions: document.getElementById("btnOptions"),
     btnCloseMenu: document.getElementById("btnCloseMenu"),
-    sideMenu: document.getElementById("sideMenu"),
-    menuOverlay: document.getElementById("menuOverlay")
+    addForm: document.getElementById("addStationForm"),
+    stationsPanel: document.querySelector(".stations-panel") // Referencia al panel con scroll
   };
 
-  if (typeof defaultStations === 'undefined') { console.error("Falta defaultStations."); return; }
-  
+  loadFavorites();
+  loadStations();
+  setupEventListeners();
+  applySavedTheme();
+};
+
+const loadStations = async () => {
   try {
-    const savedFavs = JSON.parse(localStorage.getItem("ultra_favs") || "[]");
-    favorites = new Set(savedFavs);
-    const customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
-    stations = [...customStations, ...defaultStations];
-  } catch (e) {
-    localStorage.clear();
-    stations = [...defaultStations];
-    favorites = new Set();
-  }
-
-  const savedTheme = localStorage.getItem("ultra_theme") || "default";
-  setTheme(savedTheme);
-  
-  setTimeout(() => {
-      const activeBtn = document.querySelector(`.theme-btn[data-theme="${savedTheme}"]`);
-      if(activeBtn) activeBtn.classList.add('active');
-  }, 100);
-
-  // Inicializar Handlers de Notificación
-  setupMediaSessionHandlers();
-
-  loadFilters();
-  resetControls();
-  renderList();
-  setupListeners();
-  
-  if (els.player) {
-    els.player.crossOrigin = "anonymous";
-  }
-
-  console.log(`Sistema Listo v8.0`);
-};
-
-const resetControls = () => {
-  if(els.search) els.search.value = "";
-  if(els.region) els.region.value = "Todas";
-  if(els.country) els.country.value = "Todos";
-  if(els.favToggle) els.favToggle.checked = false;
-};
-
-const setTheme = (themeName) => {
-  document.body.setAttribute("data-theme", themeName === "default" ? "" : themeName);
-  
-  // Cambia el color de la barra del navegador según el tema
-  const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if(metaTheme) {
-      switch(themeName) {
-          // Temas Clásicos
-          case 'amoled': metaTheme.setAttribute("content", "#000000"); break;
-          case 'white': metaTheme.setAttribute("content", "#f8fafc"); break; 
-          case 'gold': metaTheme.setAttribute("content", "#12100b"); break;
-          case 'purple': metaTheme.setAttribute("content", "#0a0011"); break;
-          
-          // Nuevos Temas WEAR (Coincide con el fondo oscuro del tema)
-          case 'wear-ocean': metaTheme.setAttribute("content", "#0d1b2a"); break;
-          case 'wear-sunset': metaTheme.setAttribute("content", "#2d1b0e"); break;
-          case 'wear-galaxy': metaTheme.setAttribute("content", "#1a0b2e"); break;
-          case 'wear-mint': metaTheme.setAttribute("content", "#00241b"); break;
-          case 'wear-cherry': metaTheme.setAttribute("content", "#2b0505"); break;
-          
-          default: metaTheme.setAttribute("content", "#05070a");
-      }
-  }
-};
-
-const toggleMenu = (show) => {
-  if(!els.sideMenu || !els.menuOverlay) return;
-  if(show) {
-    els.sideMenu.classList.add("open");
-    els.menuOverlay.classList.add("open");
-  } else {
-    els.sideMenu.classList.remove("open");
-    els.menuOverlay.classList.remove("open");
-  }
-};
-
-const playStation = (station) => {
-  if (currentStation && currentStation.name === station.name) { togglePlay(); return; }
-  
-  currentStation = station;
-  
-  // Actualizar UI
-  if(els.title) els.title.innerText = station.name;
-  if(els.meta) els.meta.innerText = `${station.country} · ${station.region}`;
-  if(els.status) { els.status.innerText = "CONECTANDO..."; els.status.style.color = ""; }
-  if(els.badge) els.badge.style.display = "none";
-  
-  // Actualizar Notificación ANTES de cargar audio (Para que no se cierre)
-  updateMediaSessionMetadata();
-  if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'playing';
-  }
-
-  if(els.timer) els.timer.innerText = "00:00";
-  stopTimer(); 
-
-  try {
-      els.player.src = station.url; 
-      els.player.volume = 1; 
-      
-      const p = els.player.play();
-      if (p !== undefined) {
-        p.then(() => { 
-          setPlayingState(true); 
-        }).catch(e => {
-          console.error("Error Reproducción:", e);
-          if(els.status) { els.status.innerText = "ERROR"; els.status.style.color = "#ff3d3d"; }
-          setPlayingState(false);
-        });
-      }
-  } catch (err) { console.error("Error Audio Critico", err); }
-};
-
-const togglePlay = () => {
-  if (!currentStation) { if(stations.length > 0) playStation(stations[0]); return; }
-  if (els.player.paused) { 
-    els.player.play(); 
-    setPlayingState(true); 
-  } else { 
-    els.player.pause(); 
-    setPlayingState(false); 
-  }
-};
-
-const setPlayingState = (playing) => {
-  isPlaying = playing;
-  if(els.btnPlay) { if (playing) els.btnPlay.classList.add("playing"); else els.btnPlay.classList.remove("playing"); }
-  
-  if (playing) {
-    if(els.status) { els.status.innerText = "EN VIVO"; els.status.classList.add("live"); }
-    if(els.badge) {
-        els.badge.style.display = "inline-block";
-        els.badge.innerText = navigator.onLine ? "LIVE" : "Conectando...";
-    }
-    startTimer(true);
-    if(!navigator.onLine && timerInterval) clearInterval(timerInterval);
-    
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
-
-  } else {
-    if(els.status) { els.status.innerText = "PAUSADO"; els.status.classList.remove("live"); }
-    if(els.badge) els.badge.style.display = "none";
-    stopTimer();
-    
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
-  }
-  renderList(); 
-};
-
-const skipStation = (direction) => {
-  if (stations.length === 0) return;
-  let newIndex = 0;
-  if (!currentStation) { newIndex = direction > 0 ? 0 : stations.length - 1; } 
-  else {
-    const currentIndex = stations.findIndex(s => s.name === currentStation.name);
-    newIndex = currentIndex + direction;
-    if (newIndex >= stations.length) newIndex = 0;
-    if (newIndex < 0) newIndex = stations.length - 1;
-  }
-  playStation(stations[newIndex]);
-};
-
-// --- GESTIÓN DE NOTIFICACIONES ---
-
-const setupMediaSessionHandlers = () => {
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => { els.player.play(); setPlayingState(true); });
-    navigator.mediaSession.setActionHandler('pause', () => { els.player.pause(); setPlayingState(false); });
-    navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1));
-    navigator.mediaSession.setActionHandler('nexttrack', () => skipStation(1));
-    navigator.mediaSession.setActionHandler('stop', () => { els.player.pause(); setPlayingState(false); });
-  }
-};
-
-const updateMediaSessionMetadata = () => {
-  if ('mediaSession' in navigator && currentStation) {
-    // Usamos TU LOGO (icon-192.png) para que Android saque los colores de ahí
-    const artworkImage = [
-      { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
-    ];
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentStation.name,
-      artist: currentStation.country,
-      album: 'Satelital Live',
-      artwork: artworkImage
-    });
-
-    // Fix para evitar barra de tiempo 00:00
-    try { navigator.mediaSession.setPositionState(null); } catch(e) {}
+    // Usamos los datos de stations.js
+    stations = typeof rawStations !== 'undefined' ? rawStations : [];
+    renderFilters();
+    renderList();
+  } catch (err) {
+    console.error("Error cargando estaciones:", err);
   }
 };
 
 const renderList = () => {
   if(!els.list) return;
+
+  // RESET DE SCROLL: Al filtrar o buscar, el panel vuelve arriba
+  if(els.stationsPanel) els.stationsPanel.scrollTop = 0;
+
+  const searchTerm = els.search.value.toLowerCase();
+  const regionTerm = els.region.value;
+  const countryTerm = els.country.value;
+  const showFavsOnly = els.favToggle.checked;
+
+  let filtered = stations.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(searchTerm);
+    const matchesRegion = !regionTerm || s.region === regionTerm;
+    const matchesCountry = !countryTerm || s.country === countryTerm;
+    const matchesFav = !showFavsOnly || favorites.has(s.id);
+    return matchesSearch && matchesRegion && matchesCountry && matchesFav;
+  });
+
   els.list.innerHTML = "";
   
-  const term = els.search ? els.search.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-  const region = els.region ? els.region.value : "Todas";
-  const country = els.country ? els.country.value : "Todos";
-  const showFavs = els.favToggle ? els.favToggle.checked : false;
-
-  const filtered = stations.filter(st => {
-    const normName = st.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const matchSearch = !term || normName.includes(term);
-    const matchRegion = region === "Todas" || st.region === region;
-    const matchCountry = country === "Todos" || st.country === country;
-    const matchFav = !showFavs || favorites.has(st.name);
-    return matchSearch && matchRegion && matchCountry && matchFav;
-  });
-
-  if (filtered.length === 0) { els.list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem; color:rgba(255,255,255,0.5);">No se encontraron emisoras.</div>`; return; }
-
-  const fragment = document.createDocumentFragment();
-  filtered.forEach(st => {
-    const isActive = currentStation && currentStation.name === st.name;
-    const isFav = favorites.has(st.name);
-    const badgeClass = countryClassMap[st.country] || "badge-default"; 
-    const animatingClass = (isActive && isPlaying) ? 'animating' : '';
-    const div = document.createElement("div");
-    div.className = `station-card ${isActive ? 'active' : ''} ${animatingClass}`;
-    const deleteBtn = st.isCustom ? `<button class="del-btn" title="Eliminar" aria-label="Eliminar emisora ${st.name}">×</button>` : '';
-
-    div.innerHTML = `
-      <div class="st-info">
-        <div class="st-icon ${badgeClass}"></div>
-        <div><span class="st-name">${st.name}</span><span class="st-meta">${st.country}</span></div>
+  filtered.forEach(s => {
+    const card = document.createElement("div");
+    card.className = `station-card ${currentStation?.id === s.id ? 'active' : ''}`;
+    card.innerHTML = `
+      <div class="station-info">
+        <div class="station-name">${s.name}</div>
+        <div class="station-tags">
+          <span class="badge ${countryClassMap[s.country] || 'badge-default'}">${s.country}</span>
+        </div>
       </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-        ${deleteBtn}
-        <button class="fav-btn ${isFav ? 'is-fav' : ''}" aria-label="${isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}">★</button>
-      </div>
+      <button class="fav-btn ${favorites.has(s.id) ? 'active' : ''}" data-id="${s.id}">
+        ${favorites.has(s.id) ? '★' : '☆'}
+      </button>
     `;
-    div.onclick = (e) => { if(!e.target.closest('button')) playStation(st); };
-    div.querySelector('.fav-btn').onclick = (e) => {
-      e.stopPropagation();
-      if(favorites.has(st.name)) favorites.delete(st.name); else favorites.add(st.name);
-      localStorage.setItem("ultra_favs", JSON.stringify([...favorites]));
-      renderList();
+    card.onclick = (e) => {
+      if(e.target.classList.contains('fav-btn')) {
+        toggleFavorite(s.id);
+        e.stopPropagation();
+      } else {
+        selectStation(s);
+      }
     };
-    if(st.isCustom) { div.querySelector('.del-btn').onclick = (e) => deleteCustomStation(e, st.name); }
-    fragment.appendChild(div);
+    els.list.appendChild(card);
   });
-  els.list.appendChild(fragment);
 };
 
-const addCustomStation = (e) => {
-  e.preventDefault();
-  const name = document.getElementById("newStationName").value.trim();
-  const country = document.getElementById("newStationCountry").value.trim();
-  const url = document.getElementById("newStationUrl").value.trim();
-  if(name && url) {
-    const newStation = { name, country, region: "Custom", url, isCustom: true };
-    const customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
-    customStations.push(newStation);
-    localStorage.setItem("ultra_custom", JSON.stringify(customStations));
-    location.reload(); 
+const selectStation = (station) => {
+  currentStation = station;
+  els.title.innerText = station.name;
+  els.meta.innerText = `${station.country} · ${station.region}`;
+  els.player.src = station.url;
+  
+  document.querySelectorAll('.station-card').forEach(c => c.classList.remove('active'));
+  renderList();
+  playRadio();
+  
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: station.name,
+      artist: "Radio Satelital",
+      album: station.country,
+      artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }]
+    });
   }
 };
-const deleteCustomStation = (e, stationName) => {
-  e.stopPropagation();
-  if(confirm(`¿Eliminar ${stationName}?`)) {
-    let customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
-    customStations = customStations.filter(s => s.name !== stationName);
-    localStorage.setItem("ultra_custom", JSON.stringify(customStations));
-    location.reload();
-  }
-};
-const loadFilters = () => {
-  if(!els.region || !els.country) return;
-  const regions = ["Todas", ...new Set(stations.map(s => s.region))].sort();
-  const countries = ["Todos", ...new Set(stations.map(s => s.country))].sort();
-  const fill = (sel, arr) => { sel.innerHTML = ""; arr.forEach(val => { const opt = document.createElement("option"); opt.value = val; opt.innerText = val; sel.appendChild(opt); }); };
-  fill(els.region, regions); fill(els.country, countries);
+
+const playRadio = () => {
+  els.player.play()
+    .then(() => {
+      isPlaying = true;
+      els.btnPlay.classList.add("playing");
+      els.status.innerText = "En Vivo";
+      els.status.classList.add("live");
+      if(els.badge) els.badge.style.display = "block";
+      startTimer();
+    })
+    .catch(err => {
+      console.error("Error de reproducción:", err);
+      els.status.innerText = "Error de conexión";
+    });
 };
 
 const startTimer = (reset = true) => {
   if(timerInterval) clearInterval(timerInterval);
-  if(reset) {
-    secondsElapsed = 0;
-    if(els.timer) els.timer.innerText = "00:00";
-  }
-  if(els.timer) {
-    timerInterval = setInterval(() => {
-      secondsElapsed++;
-      const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
-      const s = (secondsElapsed % 60).toString().padStart(2, '0');
-      els.timer.innerText = `${m}:${s}`;
-    }, 1000);
-  }
-};
-
-const stopTimer = () => { if (timerInterval) clearInterval(timerInterval); };
-
-const setupListeners = () => {
-  if(els.btnPlay) els.btnPlay.addEventListener("click", togglePlay);
-  if(els.btnPrev) els.btnPrev.addEventListener("click", () => skipStation(-1));
-  if(els.btnNext) els.btnNext.addEventListener("click", () => skipStation(1));
+  if(reset) secondsElapsed = 0;
   
-  // LOGICA PARA CAMBIAR TEMA (Detecta cualquier botón con clase theme-btn)
-  const themeBtns = document.querySelectorAll('.theme-btn');
-  themeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      themeBtns.forEach(b => b.classList.remove('active'));
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+    const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+    els.timer.innerText = `${mins}:${secs}`;
+  }, 1000);
+};
+
+// --- Gestión de Favoritos y Temas ---
+const toggleFavorite = (id) => {
+  if(favorites.has(id)) favorites.delete(id);
+  else favorites.add(id);
+  localStorage.setItem("satelital_favs", JSON.stringify([...favorites]));
+  renderList();
+};
+
+const loadFavorites = () => {
+  const saved = localStorage.getItem("satelital_favs");
+  if(saved) favorites = new Set(JSON.parse(saved));
+};
+
+const setupEventListeners = () => {
+  els.btnPlay.onclick = () => {
+    if(!currentStation) return;
+    if(isPlaying) {
+      els.player.pause();
+      isPlaying = false;
+      els.btnPlay.classList.remove("playing");
+      els.status.innerText = "Pausado";
+      clearInterval(timerInterval);
+    } else {
+      playRadio();
+    }
+  };
+
+  els.search.oninput = renderList;
+  els.region.onchange = renderList;
+  els.country.onchange = renderList;
+  els.favToggle.onchange = renderList;
+  
+  els.btnOptions.onclick = () => {
+    els.sideMenu.classList.add("active");
+    els.menuOverlay.classList.add("active");
+  };
+
+  const closeMenu = () => {
+    els.sideMenu.classList.remove("active");
+    els.menuOverlay.classList.remove("active");
+  };
+
+  els.btnCloseMenu.onclick = closeMenu;
+  els.menuOverlay.onclick = closeMenu;
+
+  // Cambio de Temas
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.onclick = () => {
+      const theme = btn.dataset.theme;
+      document.body.setAttribute('data-theme', theme);
+      localStorage.setItem('satelital_theme', theme);
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const theme = btn.getAttribute('data-theme');
-      setTheme(theme);
-      localStorage.setItem("ultra_theme", theme);
-    });
-  });
-
-  if(els.btnOptions) els.btnOptions.addEventListener("click", (e) => { e.preventDefault(); toggleMenu(true); });
-  if(els.btnCloseMenu) els.btnCloseMenu.addEventListener("click", () => toggleMenu(false));
-  if(els.menuOverlay) els.menuOverlay.addEventListener("click", () => toggleMenu(false));
-
-  if(els.search) els.search.addEventListener("input", renderList);
-  if(els.region) els.region.addEventListener("input", renderList);
-  if(els.country) els.country.addEventListener("input", renderList);
-  if(els.favToggle) els.favToggle.addEventListener("change", renderList);
-  if(els.clearFilters) els.clearFilters.addEventListener("click", () => { resetControls(); renderList(); });
-  if(els.addForm) els.addForm.addEventListener("submit", addCustomStation);
-
-  window.addEventListener('offline', () => {
-    if(isPlaying) {
-      if(els.badge) els.badge.innerText = "Conectando...";
-      if(timerInterval) clearInterval(timerInterval); 
-    }
-  });
-
-  window.addEventListener('online', () => {
-    if(isPlaying) {
-      if(els.badge) els.badge.innerText = "LIVE";
-      startTimer(false); 
-      if(els.player) els.player.play(); 
-    }
+    };
   });
 };
 
-let deferredPrompt;
-const installBtn = document.getElementById('btnInstall');
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if(installBtn) installBtn.style.display = 'block'; });
-if(installBtn) { installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null; installBtn.style.display = 'none'; } }); }
-window.addEventListener('appinstalled', () => { if(installBtn) installBtn.style.display = 'none'; console.log('PWA Installed'); });
+const applySavedTheme = () => {
+  const saved = localStorage.getItem('satelital_theme') || 'default';
+  document.body.setAttribute('data-theme', saved);
+  const activeBtn = document.querySelector(`.theme-btn[data-theme="${saved}"]`);
+  if(activeBtn) activeBtn.classList.add('active');
+};
+
+const renderFilters = () => {
+  const regions = [...new Set(stations.map(s => s.region))].sort();
+  const countries = [...new Set(stations.map(s => s.country))].sort();
+  
+  els.region.innerHTML = `<option value="">Todas las Regiones</option>` + 
+    regions.map(r => `<option value="${r}">${r}</option>`).join('');
+    
+  els.country.innerHTML = `<option value="">Todos los Países</option>` + 
+    countries.map(c => `<option value="${c}">${c}</option>`).join('');
+};
 
 document.addEventListener("DOMContentLoaded", init);
