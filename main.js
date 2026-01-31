@@ -1,4 +1,4 @@
-// main.js v9.4 (Mensajes Claros + Salto Automático Manual)
+// main.js v9.5 (Cache Buster + Detección Agresiva)
 // =========================================================
 
 const countryClassMap = {
@@ -19,7 +19,7 @@ let secondsElapsed = 0;
 let els = {};
 
 const init = () => {
-  console.log("Iniciando Sistema v9.4...");
+  console.log("Iniciando Sistema v9.5...");
   
   els = {
     player: document.getElementById("radioPlayer"),
@@ -70,7 +70,6 @@ const init = () => {
   renderList();
   setupListeners();
   
-  // Detección automática al inicio
   sintonizarRadioPorIP();
 
   if (els.player) els.player.crossOrigin = "anonymous";
@@ -85,7 +84,6 @@ const sintonizarRadioPorIP = async () => {
     let paisDetectado = data.country_name; 
     let regionDetectada = data.region; 
 
-    // Normalizar
     if (paisDetectado.includes("Peru")) paisDetectado = "Perú";
     if (paisDetectado.includes("United States")) paisDetectado = "EE.UU";
     if (paisDetectado.includes("Mexico")) paisDetectado = "México";
@@ -112,14 +110,14 @@ const sintonizarRadioPorIP = async () => {
       }
     }
 
-    // Nivel 3: Fallback Global (La primera de la lista)
+    // Nivel 3: Fallback Global
     if (!radioSugerida && stations.length > 0) {
         radioSugerida = stations[0]; 
     }
 
     if (radioSugerida) {
       playStation(radioSugerida);
-      // Mensaje de inicio (antes de dar click)
+      // Mensaje INICIAL (Solo al abrir la web)
       if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
     }
 
@@ -186,7 +184,7 @@ const playStation = (station) => {
         p.then(() => { 
           setPlayingState(true); 
         }).catch(e => {
-          // Bloqueo de autoplay detectado
+          // Bloqueo de Autoplay (Esto es normal al inicio)
           setPlayingState(false);
           if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
         });
@@ -198,11 +196,19 @@ const togglePlay = () => {
   if (!currentStation) { if(stations.length > 0) playStation(stations[0]); return; }
   
   if (els.player.paused) { 
+    // Intento manual de reproducir
     const p = els.player.play(); 
     if (p !== undefined) {
         p.then(() => setPlayingState(true))
          .catch(e => {
-             console.log("Error al intentar reproducir manual:", e);
+             // Si falla el manual, es ERROR DE RED casi seguro
+             console.log("Error manual:", e);
+             setPlayingState(false);
+             if(els.status) {
+                 els.status.innerText = "SIN SEÑAL / CAMBIANDO...";
+                 els.status.style.color = "#ff5252";
+             }
+             setTimeout(() => skipStation(1), 2000);
          });
     }
   } else { 
@@ -226,7 +232,7 @@ const setPlayingState = (playing) => {
 
   } else {
     if(els.status) { 
-        // No sobrescribir mensajes de error o listo
+        // Solo ponemos "PAUSADO" si no estamos reportando un error ni estamos en estado Listo
         if(!els.status.innerText.includes("SEÑAL") && !els.status.innerText.includes("LISTO")) {
             els.status.innerText = "PAUSADO"; 
         }
@@ -388,17 +394,12 @@ const setupListeners = () => {
   if(els.player) {
     els.player.addEventListener('error', (e) => {
       console.warn("Emisora caída. Saltando...");
-      
-      // 1. Detener animación visual para que no parezca que suena
       setPlayingState(false);
-
-      // 2. Mensaje CLARO para el usuario
+      
       if(els.status) {
         els.status.innerText = "SIN SEÑAL / CAMBIANDO...";
         els.status.style.color = "#ff5252";
       }
-
-      // 3. Salto automático (Aunque sea selección manual)
       setTimeout(() => {
         skipStation(1); 
       }, 2000);
@@ -455,7 +456,7 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js');
-      console.log('PWA Service Worker v9.4 Registrado');
+      console.log('PWA Service Worker v9.5 Registrado');
       if ('periodicSync' in reg) {
         try {
           const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
