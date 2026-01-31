@@ -1,4 +1,4 @@
-// main.js v8.7 (FINAL LIVE UI FIX + OPTIMIZED)
+// main.js v9.2 (ZERO SILENCE - Global Fallback)
 // =============================================
 
 const countryClassMap = {
@@ -19,7 +19,7 @@ let secondsElapsed = 0;
 let els = {};
 
 const init = () => {
-  console.log("Iniciando Sistema v8.7...");
+  console.log("Iniciando Sistema v9.2 Zero Silence...");
   
   els = {
     player: document.getElementById("radioPlayer"),
@@ -70,7 +70,72 @@ const init = () => {
   renderList();
   setupListeners();
   
+  // EJECUTAR DETECCIÓN CON FALLBACK GLOBAL
+  sintonizarRadioPorIP();
+
   if (els.player) els.player.crossOrigin = "anonymous";
+};
+
+// === LÓGICA DE UBICACIÓN + FALLBACK GLOBAL ===
+const sintonizarRadioPorIP = async () => {
+  try {
+    // 1. Obtener datos de IP
+    const response = await fetch('https://ipapi.co/json/');
+    const data = await response.json();
+    
+    let paisDetectado = data.country_name; 
+    let regionDetectada = data.region; 
+
+    // Normalizar nombres
+    if (paisDetectado.includes("Peru")) paisDetectado = "Perú";
+    if (paisDetectado.includes("United States")) paisDetectado = "EE.UU";
+    if (paisDetectado.includes("Mexico")) paisDetectado = "México";
+    if (paisDetectado.includes("Spain")) paisDetectado = "España";
+
+    console.log(`Visitante desde: ${regionDetectada}, ${paisDetectado}`);
+
+    // 2. NIVEL 1: REGIÓN EXACTA
+    let radioSugerida = stations.find(s => {
+      const paisMatch = s.country.toLowerCase() === paisDetectado.toLowerCase();
+      const regionMatch = s.region.toLowerCase().includes(regionDetectada.toLowerCase()) || 
+                          regionDetectada.toLowerCase().includes(s.region.toLowerCase());
+      return paisMatch && regionMatch;
+    });
+
+    // 3. NIVEL 2: RESPALDO NACIONAL
+    if (!radioSugerida) {
+      radioSugerida = stations.find(s => 
+        s.country.toLowerCase() === paisDetectado.toLowerCase() && 
+        s.region.toLowerCase().includes("nacional")
+      );
+      // Si no hay "Nacional", cualquiera del país
+      if (!radioSugerida) {
+         radioSugerida = stations.find(s => s.country.toLowerCase() === paisDetectado.toLowerCase());
+      }
+    }
+
+    // 4. NIVEL 3: FALLBACK UNIVERSAL (Si no hay coincidencia, pon LA PRIMERA)
+    if (!radioSugerida) {
+        console.log("Ubicación desconocida o sin cobertura. Aplicando Radio Global.");
+        if (stations.length > 0) {
+            radioSugerida = stations[0]; // Pone la primera emisora de la lista (Ej: La Mega)
+        }
+    }
+
+    // 5. EJECUTAR
+    if (radioSugerida) {
+      console.log("Radio sintonizada:", radioSugerida.name);
+      playStation(radioSugerida);
+      if(els.status) els.status.innerText = "SINTONIZADO (CLICK PLAY)";
+    }
+
+  } catch (error) {
+    console.warn("Fallo en detección IP. Aplicando Radio Global por defecto.");
+    // Si falla la API de IP (ej: bloqueador de anuncios), también ponemos la primera
+    if (stations.length > 0) {
+        playStation(stations[0]);
+    }
+  }
 };
 
 const resetControls = () => {
@@ -114,7 +179,6 @@ const playStation = (station) => {
   if (currentStation && currentStation.name === station.name) { togglePlay(); return; }
   currentStation = station;
   
-  // UI Update
   if(els.title) els.title.innerText = station.name;
   if(els.meta) els.meta.innerText = `${station.country} · ${station.region}`;
   if(els.status) { els.status.innerText = "CONECTANDO..."; els.status.style.color = ""; }
@@ -122,7 +186,6 @@ const playStation = (station) => {
   if(els.timer) els.timer.innerText = "00:00";
   stopTimer(); 
 
-  // Configurar Metadata Básica
   updateMediaSessionMetadata();
 
   try {
@@ -133,9 +196,9 @@ const playStation = (station) => {
         p.then(() => { 
           setPlayingState(true); 
         }).catch(e => {
-          console.error("Error Reproducción:", e);
-          if(els.status) { els.status.innerText = "ERROR"; els.status.style.color = "#ff3d3d"; }
+          console.error("Autoplay bloqueado o error:", e);
           setPlayingState(false);
+          if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
         });
       }
   } catch (err) { console.error("Error Audio Critico", err); }
@@ -165,8 +228,6 @@ const setPlayingState = (playing) => {
     startTimer(true);
     if(!navigator.onLine && timerInterval) clearInterval(timerInterval);
     
-    // === FIX DEFINITIVO NOTIFICACIÓN ===
-    // Se ejecuta AQUÍ, cuando el audio ya está confirmado
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
         try {
@@ -175,7 +236,7 @@ const setPlayingState = (playing) => {
                 playbackRate: 1,
                 position: 0
             });
-        } catch(e) { console.log("Live UI no soportada"); }
+        } catch(e) {}
     }
 
   } else {
@@ -215,7 +276,6 @@ const setupMediaSessionHandlers = () => {
 
 const updateMediaSessionMetadata = () => {
   if ('mediaSession' in navigator && currentStation) {
-    // Usamos TU LOGO (icon-192.png)
     const artworkImage = [
       { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
       { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
@@ -335,6 +395,19 @@ const setupListeners = () => {
   if(els.btnPrev) els.btnPrev.addEventListener("click", () => skipStation(-1));
   if(els.btnNext) els.btnNext.addEventListener("click", () => skipStation(1));
   
+  if(els.player) {
+    els.player.addEventListener('error', (e) => {
+      console.warn("Emisora caída o formato no soportado. Saltando...", e);
+      if(els.status) {
+        els.status.innerText = "FALLO DE SEÑAL...";
+        els.status.style.color = "#ff5252";
+      }
+      setTimeout(() => {
+        if(isPlaying) skipStation(1); 
+      }, 2000);
+    });
+  }
+
   const themeBtns = document.querySelectorAll('.theme-btn');
   themeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -373,7 +446,6 @@ const setupListeners = () => {
   });
 };
 
-// INSTALACIÓN PWA
 let deferredPrompt;
 const installBtn = document.getElementById('btnInstall');
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if(installBtn) installBtn.style.display = 'block'; });
@@ -382,12 +454,11 @@ window.addEventListener('appinstalled', () => { if(installBtn) installBtn.style.
 
 document.addEventListener("DOMContentLoaded", init);
 
-// REGISTRO DE SERVICE WORKER
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js');
-      console.log('PWA Service Worker v8.7 Registrado');
+      console.log('PWA Service Worker v9.2 Registrado');
       if ('periodicSync' in reg) {
         try {
           const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
