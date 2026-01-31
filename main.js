@@ -1,5 +1,5 @@
-// main.js v9.2 (ZERO SILENCE - Global Fallback)
-// =============================================
+// main.js v9.4 (Mensajes Claros + Salto Automático Manual)
+// =========================================================
 
 const countryClassMap = {
   "España": "badge-spain", "Francia": "badge-france", "Alemania": "badge-germany", "EE.UU": "badge-usa", 
@@ -19,7 +19,7 @@ let secondsElapsed = 0;
 let els = {};
 
 const init = () => {
-  console.log("Iniciando Sistema v9.2 Zero Silence...");
+  console.log("Iniciando Sistema v9.4...");
   
   els = {
     player: document.getElementById("radioPlayer"),
@@ -70,23 +70,22 @@ const init = () => {
   renderList();
   setupListeners();
   
-  // EJECUTAR DETECCIÓN CON FALLBACK GLOBAL
+  // Detección automática al inicio
   sintonizarRadioPorIP();
 
   if (els.player) els.player.crossOrigin = "anonymous";
 };
 
-// === LÓGICA DE UBICACIÓN + FALLBACK GLOBAL ===
+// === LÓGICA DE UBICACIÓN ===
 const sintonizarRadioPorIP = async () => {
   try {
-    // 1. Obtener datos de IP
     const response = await fetch('https://ipapi.co/json/');
     const data = await response.json();
     
     let paisDetectado = data.country_name; 
     let regionDetectada = data.region; 
 
-    // Normalizar nombres
+    // Normalizar
     if (paisDetectado.includes("Peru")) paisDetectado = "Perú";
     if (paisDetectado.includes("United States")) paisDetectado = "EE.UU";
     if (paisDetectado.includes("Mexico")) paisDetectado = "México";
@@ -94,7 +93,7 @@ const sintonizarRadioPorIP = async () => {
 
     console.log(`Visitante desde: ${regionDetectada}, ${paisDetectado}`);
 
-    // 2. NIVEL 1: REGIÓN EXACTA
+    // Nivel 1: Región
     let radioSugerida = stations.find(s => {
       const paisMatch = s.country.toLowerCase() === paisDetectado.toLowerCase();
       const regionMatch = s.region.toLowerCase().includes(regionDetectada.toLowerCase()) || 
@@ -102,39 +101,30 @@ const sintonizarRadioPorIP = async () => {
       return paisMatch && regionMatch;
     });
 
-    // 3. NIVEL 2: RESPALDO NACIONAL
+    // Nivel 2: Nacional
     if (!radioSugerida) {
       radioSugerida = stations.find(s => 
         s.country.toLowerCase() === paisDetectado.toLowerCase() && 
         s.region.toLowerCase().includes("nacional")
       );
-      // Si no hay "Nacional", cualquiera del país
       if (!radioSugerida) {
          radioSugerida = stations.find(s => s.country.toLowerCase() === paisDetectado.toLowerCase());
       }
     }
 
-    // 4. NIVEL 3: FALLBACK UNIVERSAL (Si no hay coincidencia, pon LA PRIMERA)
-    if (!radioSugerida) {
-        console.log("Ubicación desconocida o sin cobertura. Aplicando Radio Global.");
-        if (stations.length > 0) {
-            radioSugerida = stations[0]; // Pone la primera emisora de la lista (Ej: La Mega)
-        }
+    // Nivel 3: Fallback Global (La primera de la lista)
+    if (!radioSugerida && stations.length > 0) {
+        radioSugerida = stations[0]; 
     }
 
-    // 5. EJECUTAR
     if (radioSugerida) {
-      console.log("Radio sintonizada:", radioSugerida.name);
       playStation(radioSugerida);
-      if(els.status) els.status.innerText = "SINTONIZADO (CLICK PLAY)";
+      // Mensaje de inicio (antes de dar click)
+      if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
     }
 
   } catch (error) {
-    console.warn("Fallo en detección IP. Aplicando Radio Global por defecto.");
-    // Si falla la API de IP (ej: bloqueador de anuncios), también ponemos la primera
-    if (stations.length > 0) {
-        playStation(stations[0]);
-    }
+    if (stations.length > 0) playStation(stations[0]);
   }
 };
 
@@ -196,7 +186,7 @@ const playStation = (station) => {
         p.then(() => { 
           setPlayingState(true); 
         }).catch(e => {
-          console.error("Autoplay bloqueado o error:", e);
+          // Bloqueo de autoplay detectado
           setPlayingState(false);
           if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
         });
@@ -206,9 +196,15 @@ const playStation = (station) => {
 
 const togglePlay = () => {
   if (!currentStation) { if(stations.length > 0) playStation(stations[0]); return; }
+  
   if (els.player.paused) { 
-    els.player.play(); 
-    setPlayingState(true); 
+    const p = els.player.play(); 
+    if (p !== undefined) {
+        p.then(() => setPlayingState(true))
+         .catch(e => {
+             console.log("Error al intentar reproducir manual:", e);
+         });
+    }
   } else { 
     els.player.pause(); 
     setPlayingState(false); 
@@ -226,24 +222,18 @@ const setPlayingState = (playing) => {
         els.badge.innerText = navigator.onLine ? "LIVE" : "Conectando...";
     }
     startTimer(true);
-    if(!navigator.onLine && timerInterval) clearInterval(timerInterval);
-    
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'playing';
-        try {
-            navigator.mediaSession.setPositionState({
-                duration: Infinity, 
-                playbackRate: 1,
-                position: 0
-            });
-        } catch(e) {}
-    }
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 
   } else {
-    if(els.status) { els.status.innerText = "PAUSADO"; els.status.classList.remove("live"); }
+    if(els.status) { 
+        // No sobrescribir mensajes de error o listo
+        if(!els.status.innerText.includes("SEÑAL") && !els.status.innerText.includes("LISTO")) {
+            els.status.innerText = "PAUSADO"; 
+        }
+        els.status.classList.remove("live"); 
+    }
     if(els.badge) els.badge.style.display = "none";
     stopTimer();
-    
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   }
   renderList(); 
@@ -397,13 +387,20 @@ const setupListeners = () => {
   
   if(els.player) {
     els.player.addEventListener('error', (e) => {
-      console.warn("Emisora caída o formato no soportado. Saltando...", e);
+      console.warn("Emisora caída. Saltando...");
+      
+      // 1. Detener animación visual para que no parezca que suena
+      setPlayingState(false);
+
+      // 2. Mensaje CLARO para el usuario
       if(els.status) {
-        els.status.innerText = "FALLO DE SEÑAL...";
+        els.status.innerText = "SIN SEÑAL / CAMBIANDO...";
         els.status.style.color = "#ff5252";
       }
+
+      // 3. Salto automático (Aunque sea selección manual)
       setTimeout(() => {
-        if(isPlaying) skipStation(1); 
+        skipStation(1); 
       }, 2000);
     });
   }
@@ -458,7 +455,7 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js');
-      console.log('PWA Service Worker v9.2 Registrado');
+      console.log('PWA Service Worker v9.4 Registrado');
       if ('periodicSync' in reg) {
         try {
           const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
