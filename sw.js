@@ -1,17 +1,16 @@
-// sw.js v9.5 - Service Worker Optimizado (Cache + Network)
-// =========================================================
+// sw.js - Service Worker v9.5
+// Estrategia: Stale-While-Revalidate (Carga rápida + Actualización en segundo plano)
 
-// Nombre de la memoria caché (Debe coincidir con tu versión actual)
 const CACHE_NAME = 'radio-satelital-v9.5';
 
-// Lista de archivos requeridos para funcionar sin internet
-// NOTA: Las versiones (?v=9.5) deben ser idénticas a las del index.html
+// Lista exacta de archivos a guardar en la memoria del celular.
+// NOTA: Las versiones (?v=9.5) coinciden con tu index.html para forzar la actualización.
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css?v=9.5',
-  './stations.js?v=9.5',
   './main.js?v=9.5',
+  './stations.js?v=9.5',
   './manifest.json',
   './favicon.png',
   './icon-192.png',
@@ -19,11 +18,11 @@ const ASSETS_TO_CACHE = [
   './404.html'
 ];
 
-// 1. INSTALACIÓN: Descarga los archivos a la memoria del celular
+// 1. INSTALACIÓN: Se ejecuta la primera vez que entras
 self.addEventListener('install', (event) => {
   console.log('[Service Worker] Instalando v9.5...');
   
-  // Obliga al SW a activarse inmediatamente sin esperar a que cierres la pestaña
+  // Obliga al SW a activarse inmediatamente (sin esperar a cerrar la pestaña)
   self.skipWaiting();
 
   event.waitUntil(
@@ -34,7 +33,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. ACTIVACIÓN: Borra las memorias viejas (v8.7, v8.5, etc.)
+// 2. ACTIVACIÓN: Se ejecuta al actualizar la versión
 self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Activando y limpiando versiones antiguas...');
   
@@ -42,6 +41,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
+          // Borra cualquier caché que no sea la v9.5 (ej. v8.7, v8.5)
           if (key !== CACHE_NAME) {
             console.log('[Service Worker] Eliminando caché obsoleta:', key);
             return caches.delete(key);
@@ -51,31 +51,29 @@ self.addEventListener('activate', (event) => {
     })
   );
   
-  // Toma el control de la página de inmediato
+  // Toma el control de la página de inmediato para que funcione offline ya mismo
   return self.clients.claim();
 });
 
-// 3. INTERCEPTOR: Decide qué mostrar al usuario
+// 3. FETCH: Intercepta las peticiones de red
 self.addEventListener('fetch', (event) => {
-  // Solo interceptamos peticiones GET (lectura)
+  // Solo interceptamos peticiones GET
   if (event.request.method !== 'GET') return;
 
-  // EXCEPCIÓN: NO cachear el streaming de audio (mp3, icecast, etc.)
-  // Si cacheamos el audio, llenaremos la memoria del usuario en minutos.
+  // EXCEPCIÓN IMPORTANTE: NO cachear el streaming de audio
   const url = event.request.url;
   if (url.includes('stream') || url.includes('.mp3') || url.includes('icecast') || url.includes('shoutcast')) {
-    return; 
+    return; // Dejar pasar el audio directo a internet
   }
 
   // ESTRATEGIA: "Stale-While-Revalidate"
-  // 1. Muestra lo que hay en memoria (Carga Instantánea).
-  // 2. En segundo plano, baja la versión nueva de internet para la próxima vez.
+  // 1. Sirve lo que hay en memoria (Velocidad).
+  // 2. Busca actualizaciones en internet en segundo plano para la próxima vez.
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       
-      // Promesa de red: Busca actualizaciones en internet
       const fetchPromise = fetch(event.request).then((networkResponse) => {
-        // Si la respuesta es válida, actualizamos la copia en caché
+        // Si la respuesta de internet es válida, actualizamos la caché
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -84,14 +82,14 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        // SI NO HAY INTERNET y falló el fetch:
-        // Si es una navegación (abrir la página), mostrar error 404 personalizado
+        // SI FALLA INTERNET:
+        // Si intentan navegar a una página nueva, mostrar error 404 personalizado
         if (event.request.mode === 'navigate') {
           return caches.match('./404.html');
         }
       });
 
-      // Retorna la versión en caché si existe, si no, espera a la red
+      // Retorna la versión guardada si existe, si no, espera a internet
       return cachedResponse || fetchPromise;
     })
   );
