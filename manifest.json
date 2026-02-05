@@ -88,6 +88,12 @@
       "icons": [{"src": "icon-192.png", "sizes": "192x192"}]
     }
   ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+radio",
+      "url": "/index.html?station=%s"
+    }
+  ],
   "edge_side_panel": {
     "preferred_width": 400
   },
