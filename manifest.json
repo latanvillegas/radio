@@ -151,8 +151,10 @@
     "standalone",
     "minimal-ui"
   ],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "serviceworker": {
+    "src": "./sw.js",
+    "scope": "/",
+    "update_via_cache": "none"
+  }
 }
