@@ -1,20 +1,7 @@
-# GitHub Actions Workflow - Build Android APK with Signing
+# GitHub Actions Workflow - Build Android APK (Debug)
 # 
-# Para habilitar el firmado del APK:
-# 1. Generar keystore (una sola vez):
-#    keytool -genkey -v -keystore android-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias radio_satelital
-#
-# 2. Codificar el keystore a base64:
-#    base64 -i android-keystore.jks | tr -d '\n' > keystore.txt
-#
-# 3. Agregar los siguientes GitHub Secrets en Settings > Secrets and variables > Actions:
-#    - ANDROID_KEYSTORE_BASE64: (contenido de keystore.txt)
-#    - KEYSTORE_PASSWORD: (la contraseña que usaste)
-#    - KEY_PASSWORD: (la contraseña de la clave)
-#    - TAURI_PRIVATE_KEY: (opcional, para Tauri updater)
-#    - TAURI_KEY_PASSWORD: (opcional, para Tauri updater)
-#
-# Si no configuras estos secretos, se generará un APK sin firmar.
+# Compilación de APK en modo debug sin requerimientos de firma.
+# Genera automáticamente una APK sin firmar lista para testing.
 
 name: Build Android APK
 
@@ -37,91 +24,25 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 34
-          ndk-version: '27.0.11902837'
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Decode keystore
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
-        run: |
-          echo ${{ secrets.ANDROID_KEYSTORE_BASE64 }} | base64 -d > android-keystore.jks
-          ls -lh android-keystore.jks
-
-      - name: Create gradle.properties for signing
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
-        run: |
-          mkdir -p ~/.gradle
-          cat > ~/.gradle/gradle.properties << EOF
-          org.gradle.jvmargs=-Xmx2048m
-          org.gradle.parallel=true
-          android.useAndroidX=true
-          org.gradle.configureondemand=true
-          EOF
-
-      - name: Build Android APK (Unsigned)
-        if: secrets.ANDROID_KEYSTORE_BASE64 == ''
-        run: |
-          npm run tauri build -- --target aarch64-linux-android
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-
-      - name: Build Android APK (Signed)
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
-        run: |
-          npm run tauri build -- --target aarch64-linux-android
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-
-      - name: Sign APK with jarsigner
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
-        run: |
-          APK=$(find src-tauri/target/aarch64-linux-android/release -name "*.apk" | head -1)
-          if [ -f "$APK" ]; then
-            echo "Signing APK: $APK"
-            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-              -keystore android-keystore.jks \
-              -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-              -keypass "${{ secrets.KEY_PASSWORD }}" \
-              "$APK" radio_satelital
-            echo "APK signed successfully"
-          else
-            echo "No APK found to sign"
-          fi
-
-      - name: Verify APK signature
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
-        run: |
-          APK=$(find src-tauri/target/aarch64-linux-android/release -name "*.apk" | head -1)
-          if [ -f "$APK" ]; then
-            echo "Verifying signature..."
-            jarsigner -verify -verbose -certs "$APK"
-          fi
+      - name: Build Android APK (Debug)
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: ./src-tauri
+          args: --debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: src-tauri/target/aarch64-linux-android/release/*.apk
+          name: android-apk-debug
+          path: src-tauri/target/aarch64-linux-android/debug/*.apk
           retention-days: 30
           if-no-files-found: warn
 
@@ -129,11 +50,4 @@ jobs:
         if: always()
         run: |
           echo "=== Build artifacts ==="
-          find src-tauri/target -name "*.apk" -o -name "*.aab" 2>/dev/null || echo "No APK files found"
-          echo ""
-          echo "=== Signing configuration ==="
-          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "⚠️  APK sin firmar - Configurar secrets en GitHub para habilitar firmado"
-          else
-            echo "✅ APK firmado con keystore configurado"
-          fi
+          find src-tauri/target -name "*.apk" 2>/dev/null || echo "No APK files found"
