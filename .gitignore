@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 src-tauri/target/
 src-tauri/gen/
+# Android Signing - NEVER COMMIT THESE FILES
+android-keystore.jks
+android-keystore.txt
+SIGNING_README.txt
