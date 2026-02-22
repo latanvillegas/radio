@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Login del Panel de Administración - Radio Satelital" />
+  <title>Login Admin - Radio Satelital</title>
+  <link rel="canonical" href="https://latanvillegas.online/admin-login" />
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=9.5" />
+  <style>
+    /* Login Page Styles */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 40px;
+      backdrop-filter: blur(10px);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .login-header h1 {
+      font-size: 28px;
+      margin: 0 0 10px 0;
+      color: var(--brand);
+    }
+
+    .login-header p {
+      color: rgba(255,255,255,0.6);
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: white;
+      font-size: 0.95rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border 0.3s, background 0.3s;
+      box-sizing: border-box;
+    }
+
+    .form-input::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .submit-btn:hover {
+      background: var(--brand);
+    }
+
+    .submit-btn:disabled {
+      background: rgba(255,255,255,0.2);
+      cursor: not-allowed;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 0.9rem;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: rgba(76,175,80,0.2);
+      color: #4caf50;
+      border: 1px solid rgba(76,175,80,0.5);
+    }
+
+    .message.error {
+      background: rgba(244,67,54,0.2);
+      color: #f44336;
+      border: 1px solid rgba(244,67,54,0.5);
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .login-footer a {
+      color: var(--brand);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .login-footer a:hover {
+      color: var(--accent);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 30px 0;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.85rem;
+    }
+
+    .divider span {
+      background: rgba(255,255,255,0.05);
+      padding: 0 10px;
+    }
+
+    .invitation-section {
+      background: rgba(255,193,7,0.05);
+      border: 1px solid rgba(255,193,7,0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .invitation-section p {
+      margin: 0 0 10px 0;
+      color: rgba(255,193,7,0.9);
+      font-size: 0.9rem;
+    }
+
+    .invitation-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid rgba(255,193,7,0.3);
+      border-radius: 6px;
+      background: rgba(255,193,7,0.05);
+      color: white;
+      font-family: monospace;
+      font-size: 0.85rem;
+      box-sizing: border-box;
+    }
+
+    .invitation-input::placeholder {
+      color: rgba(255,193,7,0.5);
+    }
+
+    .invitation-input:focus {
+      outline: none;
+      border-color: rgba(255,193,7,0.6);
+      background: rgba(255,193,7,0.1);
+    }
+
+    @media (max-width: 500px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+
+      .login-header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body class="page">
+  <div class="ambient-bg"></div>
+
+  <div class="login-container">
+    <!-- Header -->
+    <div class="login-header">
+      <h1>Panel Admin</h1>
+      <p>Radio Satelital Ultra v9.5</p>
+    </div>
+
+    <!-- Mensaje de estado -->
+    <div id="loginMessage" class="message"></div>
+
+    <!-- Tab: Login Normal -->
+    <div id="loginTab" class="login-tab">
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            class="form-input" 
+            placeholder="admin@example.com"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            class="form-input" 
+            placeholder="Tu contraseña"
+            required
+          />
+        </div>
+
+        <button type="submit" class="submit-btn" id="loginBtn">
+          Ingresar como Admin
+        </button>
+      </form>
+
+      <div class="divider">
+        <span>ó</span>
+      </div>
+
+      <!-- Sección de invitación -->
+      <div class="invitation-section">
+        <p>🎫 <strong>¿Tienes un código de invitación?</strong></p>
+        <input 
+          type="text" 
+          id="invitationToken" 
+          class="invitation-input" 
+          placeholder="Pega aquí tu token de invitación"
+        />
+        <button 
+          type="button" 
+          class="submit-btn" 
+          id="acceptInviteBtn"
+          style="margin-top: 10px; background: rgba(255,193,7,0.6);"
+        >
+          Aceptar Invitación
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>⚠️ Este es un panel restringido solo para administradores autorizados.</p>
+      <p><a href="/">Volver a Radio Satelital</a></p>
+    </div>
+  </div>
+
+  <script>
+    // Admin Login System
+    const showMessage = (text, type = 'info') => {
+      const msgEl = document.getElementById('loginMessage');
+      msgEl.textContent = text;
+      msgEl.className = `message show ${type}`;
+      
+      setTimeout(() => {
+        msgEl.classList.remove('show');
+      }, 4000);
+    };
+
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+
+      if (!email || !password) {
+        showMessage('Por favor completa los campos', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+
+      try {
+        // Verificar si el usuario es admin
+        // En producción, aquí iría la lógica real de autenticación
+        // Por ahora, usamos localStorage como demostración
+        
+        // NOTA: En producción, usar Supabase Auth:
+        // const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        // Para desarrollo/demo: 
+        // Los administradores se configuren manualmente en localStorage
+        const adminEmail = localStorage.getItem('admin_master_email') || 'admin@latanvillegas.online';
+        const adminPassword = localStorage.getItem('admin_master_pass') || 'Demo123!Admin';
+        
+        if (email === adminEmail && password === adminPassword) {
+          // Guardar sesión
+          localStorage.setItem('admin_email', email);
+          localStorage.setItem('admin_role', 'admin');
+          localStorage.setItem('admin_token', 'temp_' + Date.now());
+          
+          showMessage('✓ Autenticación exitosa', 'success');
+          setTimeout(() => {
+            window.location.href = '/admin.html';
+          }, 500);
+        } else {
+          showMessage('Email o contraseña incorrectos', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('Error al autenticar', 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Ingresar como Admin';
+    });
+
+    // Accept invitation
+    document.getElementById('acceptInviteBtn').addEventListener('click', async () => {
+      const token = document.getElementById('invitationToken').value.trim();
+      
+      if (!token) {
+        showMessage('Ingresa un código de invitación', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('acceptInviteBtn');
+      btn.disabled = true;
+      btn.textContent = 'Procesando...';
+
+      try {
+        // Redirigir a página de aceptación
+        window.location.href = `/admin-accept-invitation.html?token=${encodeURIComponent(token)}`;
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('Error al procesar invitación', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Aceptar Invitación';
+      }
+    });
+
+    // Check if already logged in
+    window.addEventListener('load', () => {
+      if (localStorage.getItem('admin_email')) {
+        window.location.href = '/admin.html';
+      }
+    });
+  </script>
+</body>
+</html>
