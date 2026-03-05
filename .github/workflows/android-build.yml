@@ -39,10 +39,7 @@ jobs:
         run: npx tauri android init
 
       - name: Build Android APK (Debug)
-        uses: tauri-apps/tauri-action@v0
-        with:
-          projectPath: ./src-tauri
-          args: --debug
+        run: npx tauri android build --debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
