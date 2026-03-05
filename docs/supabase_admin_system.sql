@@ -115,7 +115,7 @@ create policy "users can view their own invitations"
 on public.admin_invitations
 for select
 to anon, authenticated
-using (email = current_user_email() or status != 'expired');
+using (email = current_user_email());
 
 -- Function para obtener email del usuario actual
 create or replace function current_user_email() returns text as $$
