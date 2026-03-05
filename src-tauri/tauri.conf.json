@@ -10,7 +10,6 @@
     "frontendDist": ".."
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
         "title": "Radio Satelital",
@@ -36,6 +35,5 @@
       "targetSdkVersion": 34,
       "compileSdkVersion": 34
     }
-  },
-  "plugins": {}
+  }
 }
