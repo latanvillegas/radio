@@ -1,9 +1,11 @@
-# GitHub Actions Workflow - Build Android APK (Debug)
-# 
-# Compilación de APK en modo debug sin requerimientos de firma.
-# Genera automáticamente una APK sin firmar lista para testing.
+# GitHub Actions Workflow - Build Android Release (Signed)
+#
+# Compila APK/AAB release y firma automáticamente usando secretos de GitHub:
+# - KEYSTORE_BASE64
+# - KEY_ALIAS
+# - KEY_PASSWORD
 
-name: Build Android APK
+name: Build Android Release
 
 on:
   push:
@@ -40,29 +42,89 @@ jobs:
 
       - name: Install Android NDK
         run: |
-          sdkmanager --install "ndk;26.1.10909125"
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.1.10909125" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.1.10909125" >> $GITHUB_ENV
+          sdkmanager --install "ndk;29.0.13846066" "build-tools;34.0.0"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/29.0.13846066" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/29.0.13846066" >> $GITHUB_ENV
+
+      - name: Validate signing secrets
+        run: |
+          [ -n "${{ secrets.KEYSTORE_BASE64 }}" ] || (echo "Missing secret: KEYSTORE_BASE64" && exit 1)
+          [ -n "${{ secrets.KEY_ALIAS }}" ] || (echo "Missing secret: KEY_ALIAS" && exit 1)
+          [ -n "${{ secrets.KEY_PASSWORD }}" ] || (echo "Missing secret: KEY_PASSWORD" && exit 1)
 
       - name: Install dependencies
         run: npm ci
 
       - name: Initialize Android project
-        run: npx tauri android init
+        run: npx tauri android init --ci
 
-      - name: Build Android APK (Debug)
-        run: npx tauri android build --debug
+      - name: Build Android release artifacts
+        run: npx tauri android build
 
-      - name: Upload APK artifact
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android-keystore.jks
+
+      - name: Sign APK (V2/V3)
+        run: |
+          UNSIGNED_APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk"
+          SIGNED_APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/RadioSatelital-v9.5-release-signed.apk"
+
+          test -f "$UNSIGNED_APK"
+
+          "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" sign \
+            --ks android-keystore.jks \
+            --ks-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
+            --v1-signing-enabled false \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            --out "$SIGNED_APK" \
+            "$UNSIGNED_APK"
+
+          "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$SIGNED_APK"
+
+      - name: Sign AAB
+        run: |
+          AAB="src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab"
+          test -f "$AAB"
+
+          jarsigner -verbose \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            -keystore android-keystore.jks \
+            -storepass "${{ secrets.KEY_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            "$AAB" "${{ secrets.KEY_ALIAS }}"
+
+          jarsigner -verify -verbose -certs "$AAB"
+
+      - name: Secure cleanup
+        if: always()
+        run: |
+          if [ -f android-keystore.jks ]; then
+            shred -u android-keystore.jks || rm -f android-keystore.jks
+          fi
+
+      - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-debug
-          path: src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
+          name: RadioSatelital-v9.5-Release-APK-Signed
+          path: src-tauri/gen/android/app/build/outputs/apk/universal/release/RadioSatelital-v9.5-release-signed.apk
           retention-days: 30
-          if-no-files-found: warn
+          if-no-files-found: error
+
+      - name: Upload release AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RadioSatelital-v9.5-Release-AAB
+          path: src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab
+          retention-days: 30
+          if-no-files-found: error
 
       - name: List generated files
         if: always()
         run: |
           echo "=== Build artifacts ==="
-          find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" 2>/dev/null || echo "No APK files found"
+          find src-tauri/gen/android/app/build/outputs -type f \( -name "*.apk" -o -name "*.aab" \) 2>/dev/null || echo "No Android artifacts found"
