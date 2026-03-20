@@ -31,6 +31,23 @@ const getSupabaseClient = () => {
   return cfg;
 };
 
+const getAuthHeaders = async () => {
+  const cfg = getSupabaseClient();
+  if (!cfg) throw new Error('Configuración no disponible');
+  if (!window.AdminAuth) throw new Error('Módulo de autenticación no disponible');
+
+  const session = await window.AdminAuth.getValidSession();
+  if (!session?.access_token) {
+    throw new Error('Sesión expirada. Inicia sesión nuevamente.');
+  }
+
+  return {
+    apikey: cfg.anonKey,
+    Authorization: `Bearer ${session.access_token}`,
+    'Content-Type': 'application/json'
+  };
+};
+
 // ===============================================================
 // FUNCIONES DE API (Supabase REST)
 // ===============================================================
@@ -41,12 +58,7 @@ const supabaseRest = async (table, options = {}) => {
 
   const baseRest = cfg.restUrl ? String(cfg.restUrl).replace(/\/$/, "") : `${cfg.url}/rest/v1`;
   const endpoint = `${baseRest}/${table}`;
-
-  const headers = {
-    'apikey': cfg.anonKey,
-    'Authorization': `Bearer ${cfg.anonKey}`,
-    'Content-Type': 'application/json'
-  };
+  const headers = await getAuthHeaders();
 
   if (options.select) {
     const url = `${endpoint}?${new URLSearchParams({
@@ -99,14 +111,11 @@ const callRPC = async (functionName, params = {}) => {
 
   const baseRest = cfg.restUrl ? String(cfg.restUrl).replace(/\/$/, "") : `${cfg.url}/rest/v1`;
   const endpoint = `${baseRest}/rpc/${functionName}`;
+  const headers = await getAuthHeaders();
 
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': cfg.anonKey,
-      'Authorization': `Bearer ${cfg.anonKey}`
-    },
+    headers,
     body: JSON.stringify(params)
   });
 
@@ -117,23 +126,33 @@ const callRPC = async (functionName, params = {}) => {
 // FUNCIONES DE AUTENTICACIÓN
 // ===============================================================
 
-const getCurrentUser = () => {
-  // Buscar usuario autenticado aquí
-  const email = localStorage.getItem('admin_email');
-  const role = localStorage.getItem('admin_role');
-
-  if (!email || !role) {
+const getCurrentUser = async () => {
+  if (!window.AdminAuth) {
     window.location.href = '/admin-login.html';
     return null;
   }
 
-  return { email, role };
+  const auth = await window.AdminAuth.getAuthenticatedAdmin();
+  if (!auth.ok || !auth.user) {
+    window.location.href = '/admin-login.html';
+    return null;
+  }
+
+  return { email: auth.user.email, role: auth.user.role };
 };
 
-const logout = () => {
-  localStorage.removeItem('admin_email');
-  localStorage.removeItem('admin_role');
-  localStorage.removeItem('admin_token');
+const logout = async () => {
+  const email = localStorage.getItem("admin_email");
+  
+  if (window.AdminAudit && email) {
+    window.AdminAudit.recordLogout(email);
+    await window.AdminAudit.ensureFlush();
+  }
+  
+  if (window.AdminAuth) {
+    await window.AdminAuth.signOut();
+  }
+  sessionStorage.clear();
   window.location.href = '/admin-login.html';
 };
 
@@ -426,6 +445,11 @@ const approveStation = async (stationId) => {
       return false;
     }
 
+    if (window.AdminAudit) {
+      const station = adminState.stations.pending.find(s => s.id === stationId);
+      window.AdminAudit.recordStationApproved(stationId, station?.name || 'unknown');
+    }
+
     showMessage('Radio aprobada correctamente ✓', 'success');
     await loadPendingStations();
     await loadApprovedStations();
@@ -449,6 +473,11 @@ const rejectStation = async (stationId, comments = '') => {
     if (result.error) {
       showMessage('Error al rechazar: ' + result.error.message, 'error');
       return false;
+    }
+
+    if (window.AdminAudit) {
+      const station = adminState.stations.pending.find(s => s.id === stationId);
+      window.AdminAudit.recordStationRejected(stationId, station?.name || 'unknown', comments);
     }
 
     showMessage('Radio rechazada', 'success');
@@ -784,7 +813,9 @@ const setupEventListeners = () => {
   });
 
   // Logout
-  document.getElementById('btnLogout').addEventListener('click', logout);
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await logout();
+  });
 
   // Panel de notificaciones
   const notificationsBtn = document.getElementById('btnNotifications');
@@ -865,7 +896,7 @@ const init = async () => {
   console.log('Inicializando Panel de Administración...');
 
   // Verificar autenticación
-  const user = getCurrentUser();
+  const user = await getCurrentUser();
   if (!user) return;
 
   adminState.currentUser = user;
@@ -903,6 +934,11 @@ const init = async () => {
           console.log('✓ Notificaciones del navegador habilitadas');
         }
       });
+    }
+
+    // Iniciar protección de inactividad
+    if (window.AdminAuth && typeof window.AdminAuth.startInactivityGuard === 'function') {
+      window.AdminAuth.startInactivityGuard();
     }
 
     showMessage('✓ Panel de administración cargado', 'success');

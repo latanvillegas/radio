@@ -1,8 +1,10 @@
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
+use url::Url;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CustomStation {
@@ -60,6 +62,54 @@ fn open_db(app: &AppHandle) -> Result<Connection, String> {
     Ok(conn)
 }
 
+fn is_private_or_local_host(host: &str) -> bool {
+    let h = host.trim().to_ascii_lowercase();
+    if h.is_empty() {
+        return true;
+    }
+
+    if h == "localhost" || h.ends_with(".local") {
+        return true;
+    }
+
+    if let Ok(ip) = h.parse::<IpAddr>() {
+        return match ip {
+            IpAddr::V4(v4) => {
+                v4.is_private()
+                    || v4.is_loopback()
+                    || v4.is_link_local()
+                    || v4.is_unspecified()
+                    || v4 == Ipv4Addr::new(0, 0, 0, 0)
+            }
+            IpAddr::V6(v6) => {
+                v6.is_loopback()
+                    || v6.is_unspecified()
+                    || v6.is_unique_local()
+                    || v6.is_unicast_link_local()
+            }
+        };
+    }
+
+    false
+}
+
+fn validate_public_stream_url(raw: &str) -> Result<String, String> {
+    let parsed = Url::parse(raw).map_err(|_| "La URL no es válida".to_string())?;
+    let scheme = parsed.scheme();
+    if scheme != "http" && scheme != "https" {
+        return Err("La URL debe usar http o https".to_string());
+    }
+
+    let host = parsed
+        .host_str()
+        .ok_or_else(|| "La URL debe tener host".to_string())?;
+    if is_private_or_local_host(host) {
+        return Err("La URL debe apuntar a un host público".to_string());
+    }
+
+    Ok(parsed.to_string())
+}
+
 #[tauri::command]
 fn list_custom_stations(app: AppHandle) -> Result<Vec<CustomStation>, String> {
     let conn = open_db(&app)?;
@@ -92,11 +142,11 @@ fn list_custom_stations(app: AppHandle) -> Result<Vec<CustomStation>, String> {
 #[tauri::command]
 fn add_custom_station(app: AppHandle, station: NewCustomStation) -> Result<(), String> {
     let name = station.name.trim();
-    let url = station.url.trim();
+    let url = validate_public_stream_url(station.url.trim())?;
     let country = station.country.trim();
     let region = station.region.trim();
 
-    if name.is_empty() || url.is_empty() || country.is_empty() || region.is_empty() {
+    if name.is_empty() || country.is_empty() || region.is_empty() {
         return Err("Nombre, URL, país y región son obligatorios".to_string());
     }
 

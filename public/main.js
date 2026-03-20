@@ -19,6 +19,23 @@ let isStationsLoading = true;
 
 let els = {};
 
+const escapeHtml = (value) => String(value ?? "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/\"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
+const hardenExternalLinks = () => {
+  const links = document.querySelectorAll('a[target="_blank"]');
+  links.forEach((link) => {
+    const relValues = new Set((link.getAttribute("rel") || "").split(/\s+/).filter(Boolean));
+    relValues.add("noopener");
+    relValues.add("noreferrer");
+    link.setAttribute("rel", [...relValues].join(" "));
+  });
+};
+
 const nativePlayerBridge = {
   available() {
     return typeof window !== "undefined"
@@ -220,7 +237,7 @@ const showQuickToast = (message, type = "info") => {
   quickToastTimerId = setTimeout(() => {
     toast.classList.remove("show");
     quickToastTimerId = null;
-  }, 1200);
+  }, 900);
 };
 
 const resetAudioPrefs = () => {
@@ -628,6 +645,7 @@ const removeCustomStation = async (station) => {
 const init = async () => {
   console.log("Iniciando Sistema v9.5...");
   applyMotionProfile();
+  hardenExternalLinks();
   
   els = {
     player: document.getElementById("radioPlayer"),
@@ -1039,17 +1057,20 @@ const renderList = () => {
     const isFav = favorites.has(st.name);
     const badgeClass = countryClassMap[st.country] || "badge-default"; 
     const animatingClass = (isActive && isPlaying) ? 'animating' : '';
+    const safeName = escapeHtml(st.name);
+    const safeCountry = escapeHtml(st.country);
     const div = document.createElement("div");
     const stationCardKey = encodeURIComponent(stationKey(st));
     div.className = `station-card ${isActive ? 'active' : ''} ${animatingClass}`;
     div.setAttribute("data-station-key", stationCardKey);
-    const deleteBtn = (st.isCustom && !st.isGlobal) ? `<button class="del-btn" title="Eliminar" aria-label="Eliminar emisora ${st.name}">×</button>` : '';
+    const deleteBtn = (st.isCustom && !st.isGlobal) ? `<button class="del-btn" title="Eliminar" aria-label="Eliminar emisora ${safeName}">×</button>` : '';
     const subMeta = [st.region, st.district, st.caserio].filter(Boolean).join(" · ");
+    const safeSubMeta = escapeHtml(subMeta);
 
     div.innerHTML = `
       <div class="st-info">
         <div class="st-icon ${badgeClass}"></div>
-        <div><span class="st-name">${st.name}</span><span class="st-meta">${st.country}${subMeta ? ` · ${subMeta}` : ''}</span></div>
+        <div><span class="st-name">${safeName}</span><span class="st-meta">${safeCountry}${subMeta ? ` · ${safeSubMeta}` : ''}</span></div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         ${deleteBtn}

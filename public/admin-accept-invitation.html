@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Aceptar Invitación de Admin - Radio Satelital" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss: ws://localhost:* http://localhost:*; form-action 'self'" />
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=()" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Aceptar Invitación - Radio Satelital</title>
   <link rel="canonical" href="https://latanvillegas.online/admin-accept-invitation" />
   <link rel="icon" type="image/png" href="favicon.png">
@@ -288,6 +294,8 @@
   </div>
 
   <script src="supabase.config.js"></script>
+  <script src="admin-auth.js"></script>
+  <script src="rate-limiter.js"></script>
   <script>
     // Admin Invitation Acceptance System
     const urlParams = new URLSearchParams(window.location.search);
@@ -436,8 +444,15 @@
         return;
       }
 
-      if (password.length < 6) {
-        showMessage('La contraseña debe tener al menos 6 caracteres', 'error');
+      if (password.length < 10) {
+        showMessage('La contraseña debe tener al menos 10 caracteres', 'error');
+        return;
+      }
+
+      // Rate limiting check
+      const signupCheckResult = window.RateLimiter.signupLimiter.check(email);
+      if (!signupCheckResult.allowed) {
+        showMessage(`Demasiados intentos. Espera ${Math.ceil(signupCheckResult.resetTime / 1000)}s`, 'error');
         return;
       }
 
@@ -446,6 +461,15 @@
       btn.textContent = 'Procesando...';
 
       try {
+        if (!window.AdminAuth) {
+          throw new Error('Módulo de autenticación no disponible');
+        }
+
+        // 1) Crear cuenta segura en Auth (si ya existe, el backend devolverá error)
+        await window.AdminAuth.signUpWithPassword(email, password, {
+          full_name: name || email
+        });
+
         // Llamar función RPC que:
         // 1. Valida y acepta la invitación
         // 2. Crea el usuario admin
@@ -461,10 +485,12 @@
           return;
         }
 
-        // Guardar credenciales
-        localStorage.setItem('admin_email', email);
-        localStorage.setItem('admin_role', 'reviewer');
-        localStorage.setItem('admin_token', 'temp_' + Date.now());
+        // 2) Iniciar sesión y verificar rol efectivo
+        await window.AdminAuth.signInWithPassword(email, password);
+        const auth = await window.AdminAuth.getAuthenticatedAdmin();
+        if (!auth.ok) {
+          throw new Error('La cuenta fue creada, pero no tiene permisos activos de administración.');
+        }
 
         showState('success');
         setTimeout(() => {
@@ -473,7 +499,7 @@
 
       } catch (error) {
         console.error('Error:', error);
-        showMessage('Error al procesar invitación', 'error');
+        showMessage(error?.message || 'Error al procesar invitación', 'error');
         btn.disabled = false;
         btn.textContent = 'Aceptar Invitación y Registrarme';
       }

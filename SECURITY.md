@@ -20,3 +20,18 @@ Por favor, reporte el problema directamente al desarrollador principal (**Latán
 2.  O mediante un mensaje privado en GitHub si tiene permisos.
 
 Nos comprometemos a revisar los reportes legítimos en menos de 48 horas y lanzar un parche de seguridad si es necesario.
+
+## Baseline de Seguridad (v9.5+)
+
+- CSP activa en WebView/Tauri y páginas públicas/admin.
+- Referrer-Policy y Permissions-Policy aplicadas en HTML críticos.
+- Mitigación XSS en renderizado dinámico de emisoras (escape HTML).
+- Endurecimiento de enlaces externos con `noopener noreferrer`.
+- Validación de URL también en backend Rust (solo `http/https` y host público).
+- Login admin con sesión real de Supabase Auth (sin credenciales demo por defecto).
+
+## Requisitos Operativos
+
+- No usar claves por defecto en admin.
+- Activar políticas RLS estrictas en tablas de administración (`admin_users`, `admin_invitations`, `approval_history`, `global_stations`).
+- Rotar `anonKey` si hubo exposición accidental y revisar auditoría de accesos.
