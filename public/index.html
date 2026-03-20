@@ -16,7 +16,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css?v=9.5" />
 </head>
@@ -57,6 +57,63 @@
             <button class="theme-btn" data-theme="wear-galaxy" style="background: linear-gradient(135deg, #667eea, #764ba2); border:none;" aria-label="Neon Galaxy"></button>
             <button class="theme-btn" data-theme="wear-mint" style="background: linear-gradient(135deg, #43e97b, #38f9d7); border:none;" aria-label="Mint Fresh"></button>
             <button class="theme-btn" data-theme="wear-cherry" style="background: linear-gradient(135deg, #ff0844, #ffb199); border:none;" aria-label="Cherry Bomb"></button>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <label class="opt-label">Herramientas</label>
+          <div class="options-grid">
+            <button id="btnShareStation" class="option-btn" type="button">Compartir Emisora</button>
+            <button id="btnCopyStation" class="option-btn" type="button">Copiar URL</button>
+            <button id="btnExportFavs" class="option-btn" type="button">Exportar Favoritos</button>
+            <button id="btnImportFavs" class="option-btn" type="button">Importar Favoritos</button>
+            <input id="inputImportFavs" type="file" accept="application/json" hidden>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <label class="opt-label">Temporizador</label>
+          <div class="timer-row">
+            <select id="sleepMinutes" class="input-dark mini option-select" aria-label="Minutos de apagado">
+              <option value="10">10 min</option>
+              <option value="20">20 min</option>
+              <option value="30" selected>30 min</option>
+              <option value="45">45 min</option>
+              <option value="60">60 min</option>
+              <option value="90">90 min</option>
+            </select>
+            <button id="btnSleepStart" class="option-btn" type="button">Iniciar</button>
+            <button id="btnSleepCancel" class="option-btn ghost" type="button">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <label class="opt-label">Interfaz</label>
+          <div class="options-grid">
+            <button id="btnToggleCompactUi" class="option-btn ghost" type="button">Modo compacto: OFF</button>
+            <button id="btnToggleDecoMotion" class="option-btn ghost" type="button">Animaciones decorativas: ON</button>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <label class="opt-label">Audio Avanzado</label>
+          <div class="audio-tools">
+            <div class="audio-volume-row">
+              <span class="audio-label">Volumen</span>
+              <input id="audioVolume" class="audio-range" type="range" min="0" max="100" step="1" value="100" aria-label="Control de volumen">
+              <span id="audioVolumeValue" class="audio-value">100%</span>
+            </div>
+            <div class="audio-retry-row">
+              <button id="btnToggleAutoRetry" class="option-btn ghost" type="button">Auto-reintento: ON</button>
+              <select id="retrySeconds" class="input-dark mini option-select" aria-label="Segundos de reintento">
+                <option value="2" selected>2s</option>
+                <option value="3">3s</option>
+                <option value="5">5s</option>
+                <option value="8">8s</option>
+              </select>
+            </div>
+            <button id="btnMenuFavOnly" class="option-btn ghost" type="button">Solo favoritas (menú): OFF</button>
+            <button id="btnResetAudioPrefs" class="option-btn" type="button">Restaurar audio</button>
           </div>
         </div>
       

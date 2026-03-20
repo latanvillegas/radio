@@ -1,2 +1,16 @@
 /target
 /gen
+!/gen
+!/gen/android
+/gen/android/**
+!/gen/android/app/
+!/gen/android/app/build.gradle.kts
+!/gen/android/app/src/
+!/gen/android/app/src/main/
+!/gen/android/app/src/main/AndroidManifest.xml
+!/gen/android/app/src/main/java/
+!/gen/android/app/src/main/java/online/
+!/gen/android/app/src/main/java/online/latanvillegas/
+!/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/
+!/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/MainActivity.kt
+!/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/RadioForegroundService.kt

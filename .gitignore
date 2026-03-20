@@ -2,6 +2,21 @@ node_modules/
 .DS_Store
 src-tauri/target/
 src-tauri/gen/
+# Persist only the minimal Android Phase 2 files (avoid noisy generated tree)
+!src-tauri/gen/
+!src-tauri/gen/android/
+src-tauri/gen/android/**
+!src-tauri/gen/android/app/
+!src-tauri/gen/android/app/build.gradle.kts
+!src-tauri/gen/android/app/src/
+!src-tauri/gen/android/app/src/main/
+!src-tauri/gen/android/app/src/main/AndroidManifest.xml
+!src-tauri/gen/android/app/src/main/java/
+!src-tauri/gen/android/app/src/main/java/online/
+!src-tauri/gen/android/app/src/main/java/online/latanvillegas/
+!src-tauri/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/
+!src-tauri/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/MainActivity.kt
+!src-tauri/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/RadioForegroundService.kt
 # Android Signing - NEVER COMMIT THESE FILES
 android-keystore.jks
 android-keystore.txt
