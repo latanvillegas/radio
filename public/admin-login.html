@@ -287,11 +287,18 @@
     </div>
   </div>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      });
+    }
+  </script>
+
   <script src="supabase.config.js?v=9.6"></script>
   <script src="admin-auth.js?v=9.6"></script>
   <script src="admin-audit.js?v=9.6"></script>
   <script src="rate-limiter.js?v=9.6"></script>
-  <script src="test-admin.js?v=9.6"></script>
   <script>
     // Admin Login System
     const showMessage = (text, type = 'info') => {
@@ -321,21 +328,23 @@
       btn.textContent = 'Verificando...';
 
       try {
-        // Rate limiting check
-        const emailCheckResult = window.RateLimiter.loginEmailLimiter.check(email);
-        if (!emailCheckResult.allowed) {
-          showMessage(`Demasiados intentos. Espera ${Math.ceil(emailCheckResult.resetTime / 1000)}s`, 'error');
-          btn.disabled = false;
-          btn.textContent = 'Ingresar como Admin';
-          return;
-        }
+        // Rate limiting check (con fallback si el modulo no esta disponible)
+        if (window.RateLimiter?.loginEmailLimiter?.check && window.RateLimiter?.loginLimiter?.check) {
+          const emailCheckResult = window.RateLimiter.loginEmailLimiter.check(email);
+          if (!emailCheckResult.allowed) {
+            showMessage(`Demasiados intentos. Espera ${Math.ceil(emailCheckResult.resetTime / 1000)}s`, 'error');
+            btn.disabled = false;
+            btn.textContent = 'Ingresar como Admin';
+            return;
+          }
 
-        const globalCheckResult = window.RateLimiter.loginLimiter.check();
-        if (!globalCheckResult.allowed) {
-          showMessage(`Sistema en límite de intentos. Intenta más tarde.`, 'error');
-          btn.disabled = false;
-          btn.textContent = 'Ingresar como Admin';
-          return;
+          const globalCheckResult = window.RateLimiter.loginLimiter.check();
+          if (!globalCheckResult.allowed) {
+            showMessage('Sistema en limite de intentos. Intenta mas tarde.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Ingresar como Admin';
+            return;
+          }
         }
 
         if (!window.AdminAuth) {

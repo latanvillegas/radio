@@ -293,6 +293,14 @@
     </div>
   </div>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      });
+    }
+  </script>
+
   <script src="supabase.config.js?v=9.6"></script>
   <script src="admin-auth.js?v=9.6"></script>
   <script src="rate-limiter.js?v=9.6"></script>
@@ -449,11 +457,13 @@
         return;
       }
 
-      // Rate limiting check
-      const signupCheckResult = window.RateLimiter.signupLimiter.check(email);
-      if (!signupCheckResult.allowed) {
-        showMessage(`Demasiados intentos. Espera ${Math.ceil(signupCheckResult.resetTime / 1000)}s`, 'error');
-        return;
+      // Rate limiting check (con fallback si el modulo no esta disponible)
+      if (window.RateLimiter?.signupLimiter?.check) {
+        const signupCheckResult = window.RateLimiter.signupLimiter.check(email);
+        if (!signupCheckResult.allowed) {
+          showMessage(`Demasiados intentos. Espera ${Math.ceil(signupCheckResult.resetTime / 1000)}s`, 'error');
+          return;
+        }
       }
 
       const btn = document.getElementById('acceptBtn');

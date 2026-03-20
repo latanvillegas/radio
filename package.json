@@ -7,8 +7,8 @@
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "tauri:android": "tauri android dev",
-    "tauri:android:build": "tauri android build"
+    "tauri:android": "bash ./scripts/tauri-android.sh dev",
+    "tauri:android:build": "bash ./scripts/tauri-android.sh build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0"

@@ -743,6 +743,14 @@
 
   </div>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      });
+    }
+  </script>
+
   <!-- Scripts -->
   <script src="supabase.config.js?v=9.6"></script>
   <script src="admin-auth.js?v=9.6"></script>
