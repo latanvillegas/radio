@@ -16,7 +16,6 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerNotificationManager
-import androidx.media3.session.MediaSession.ControllerInfo
 
 class RadioForegroundService : Service() {
   companion object {
@@ -94,19 +93,7 @@ class RadioForegroundService : Service() {
       }
     })
 
-    mediaSession = MediaSession.Builder(this, player)
-      .setCallback(object : MediaSession.Callback {
-        override fun onSkipToNext(session: MediaSession, controller: ControllerInfo): Int {
-          broadcastCommand(commandNext)
-          return super.onSkipToNext(session, controller)
-        }
-
-        override fun onSkipToPrevious(session: MediaSession, controller: ControllerInfo): Int {
-          broadcastCommand(commandPrevious)
-          return super.onSkipToPrevious(session, controller)
-        }
-      })
-      .build()
+    mediaSession = MediaSession.Builder(this, player).build()
 
     notificationManager = PlayerNotificationManager.Builder(this, notificationId, channelId)
       .setMediaDescriptionAdapter(object : PlayerNotificationManager.MediaDescriptionAdapter {
@@ -155,8 +142,8 @@ class RadioForegroundService : Service() {
         }
       })
       .build().apply {
-      setUseNextAction(true)
-      setUsePreviousAction(true)
+      setUseNextAction(false)
+      setUsePreviousAction(false)
         setUseFastForwardAction(false)
         setUseRewindAction(false)
         setMediaSessionToken(mediaSession.sessionCompatToken)
@@ -227,13 +214,6 @@ class RadioForegroundService : Service() {
     val intent = Intent(stateBroadcastAction).apply {
       putExtra(stateExtra, state)
       putExtra(messageExtra, message)
-    }
-    sendBroadcast(intent)
-  }
-
-  private fun broadcastCommand(command: String) {
-    val intent = Intent(commandBroadcastAction).apply {
-      putExtra(commandExtra, command)
     }
     sendBroadcast(intent)
   }
