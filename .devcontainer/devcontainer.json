@@ -1,0 +1,78 @@
+{
+  "name": "Android Native Development (Kotlin + Jetpack Compose)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "VARIANT": "jammy"
+    }
+  },
+  "forwardPorts": [
+    8080,
+    8888,
+    5037,
+    5555
+  ],
+  "portsAttributes": {
+    "8080": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "5037": {
+      "label": "ADB Server",
+      "onAutoForward": "silent"
+    }
+  },
+  "remoteEnv": {
+    "ANDROID_HOME": "/opt/android",
+    "ANDROID_SDK_ROOT": "/opt/android",
+    "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
+    "GRADLE_OPTS": "-Xmx4096m -XX:+UseG1GC -XX:MaxGCPauseMillis=200",
+    "GRADLE_USER_HOME": "/workspace/.gradle"
+  },
+  "remoteUser": "root",
+  "updateContentCommand": "bash -c 'git --version && gradle --version && java -version && echo \"Environment ready for Android development\"'",
+  "postCreateCommand": "bash -c '\n    echo \"Configuring Android Development Environment...\" && \n    mkdir -p ~/.gradle && \n    echo \"org.gradle.jvmargs=-Xmx4096m\" > ~/.gradle/gradle.properties && \n    echo \"Android SDK Home: $ANDROID_HOME\" && \n    echo \"Java Home: $JAVA_HOME\" && \n    echo \"PATH: $PATH\"\n'",
+  "postStartCommand": "bash -c 'echo \"Starting dev container...\" && adb start-server 2>/dev/null || true'",
+  "customizations": {
+    "devcontainers": {
+      "settings": {
+        "[kotlin]": {
+          "editor.defaultFormatter": "detekt"
+        },
+        "kotlin.linting.enabled": true,
+        "kotlin.format.enable": false
+      },
+      "extensions": [
+        "ms-vscode.vscode-android",
+        "fwcd.kotlin",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "ms-vscode.makefile-tools",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode.cmake-tools"
+      ]
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,readonly",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig,readonly"
+  ],
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "50gb"
+  },
+  "capAdd": [
+    "SYS_PTRACE"
+  ],
+  "securityOpt": [
+    "seccomp=unconfined"
+  ]
+}
