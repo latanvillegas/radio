@@ -72,6 +72,14 @@ const nativePlayerBridge = {
   }
 };
 
+const isAndroidRuntime = () => {
+  try {
+    return /android/i.test(navigator.userAgent || "");
+  } catch (_) {
+    return false;
+  }
+};
+
 const getNativeQueuePreview = (station) => {
   const fallback = { prevTitle: "", nextTitle: "" };
   if (!station || !Array.isArray(stations) || stations.length < 2) return fallback;
@@ -723,7 +731,7 @@ const init = async () => {
 
   const savedStation = getSavedStation();
   if (savedStation) {
-    playStation(savedStation);
+    playStation(savedStation, false);
     if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
   } else {
     sintonizarRadioPorIP();
@@ -733,7 +741,7 @@ const init = async () => {
     document.body.classList.add("page-ready");
   });
 
-  if (els.player) els.player.crossOrigin = "anonymous";
+  if (els.player && !nativePlayerBridge.available()) els.player.crossOrigin = "anonymous";
 };
 
 // === LÓGICA DE UBICACIÓN ===
@@ -777,13 +785,13 @@ const sintonizarRadioPorIP = async () => {
     }
 
     if (radioSugerida) {
-      playStation(radioSugerida);
+      playStation(radioSugerida, false);
       // Mensaje INICIAL (Solo al abrir la web)
       if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
     }
 
   } catch (error) {
-    if (stations.length > 0) playStation(stations[0]);
+    if (stations.length > 0) playStation(stations[0], false);
   }
 };
 
@@ -875,8 +883,11 @@ const triggerSharedStationTransition = (station) => {
   setTimeout(() => document.body.classList.remove("station-switching"), 520);
 };
 
-const playStation = (station) => {
-  if (currentStation && currentStation.name === station.name) { togglePlay(); return; }
+const playStation = (station, autoplay = true) => {
+  if (currentStation && currentStation.name === station.name) {
+    if (autoplay) togglePlay();
+    return;
+  }
   triggerSharedStationTransition(station);
   currentStation = station;
   saveLastStation(station);
@@ -894,6 +905,15 @@ const playStation = (station) => {
 
   updateMediaSessionMetadata();
 
+  if (!autoplay) {
+    setPlayingState(false);
+    if(els.status) {
+      els.status.innerText = "LISTO (CLICK PLAY)";
+      els.status.style.color = "";
+    }
+    return;
+  }
+
   if (nativePlayerBridge.play(station)) {
     if(els.status) {
       els.status.innerText = "CONECTANDO...";
@@ -901,6 +921,17 @@ const playStation = (station) => {
     }
     return;
   }
+
+  if (isAndroidRuntime()) {
+    setPlayingState(false);
+    if (els.status) {
+      els.status.innerText = "Reproductor nativo no disponible";
+      els.status.style.color = "#ff5252";
+    }
+    return;
+  }
+
+  if (!els.player) return;
 
   try {
       els.player.src = station.url; 
@@ -931,6 +962,17 @@ const togglePlay = () => {
     }
     return;
   }
+
+  if (isAndroidRuntime()) {
+    setPlayingState(false);
+    if (els.status) {
+      els.status.innerText = "Reproductor nativo no disponible";
+      els.status.style.color = "#ff5252";
+    }
+    return;
+  }
+
+  if (!els.player) return;
 
   if (els.player.paused) {
     const p = els.player.play();
@@ -997,7 +1039,7 @@ const skipStation = (direction) => {
 
 const setupMediaSessionHandlers = () => {
   if (nativePlayerBridge.available()) return;
-  if ('mediaSession' in navigator) {
+  if ('mediaSession' in navigator && els.player) {
     navigator.mediaSession.setActionHandler('play', () => { els.player.play(); setPlayingState(true); });
     navigator.mediaSession.setActionHandler('pause', () => { els.player.pause(); setPlayingState(false); });
     navigator.mediaSession.setActionHandler('previoustrack', () => skipStation(-1));
@@ -1339,7 +1381,7 @@ const setupListeners = () => {
     if(isPlaying) {
       if(els.badge) els.badge.innerText = "LIVE";
       startTimer(false); 
-      if(els.player) els.player.play(); 
+      if(!nativePlayerBridge.available() && els.player) els.player.play(); 
     }
   });
 };
