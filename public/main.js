@@ -69,6 +69,26 @@ const nativePlayerBridge = {
   stop() {
     if (!this.available() || typeof window.AndroidNativePlayer.stop !== "function") return false;
     try { window.AndroidNativePlayer.stop(); return true; } catch (_) { return false; }
+  },
+  setVolume(value) {
+    if (!this.available() || typeof window.AndroidNativePlayer.setVolume !== "function") return false;
+    const safeValue = Math.max(0, Math.min(1, Number(value)));
+    try { window.AndroidNativePlayer.setVolume(safeValue); return true; } catch (_) { return false; }
+  },
+  setEqEnabled(enabled) {
+    if (!this.available() || typeof window.AndroidNativePlayer.setEqEnabled !== "function") return false;
+    try { window.AndroidNativePlayer.setEqEnabled(Boolean(enabled)); return true; } catch (_) { return false; }
+  },
+  setEqBandLevel(band, level) {
+    if (!this.available() || typeof window.AndroidNativePlayer.setEqBandLevel !== "function") return false;
+    const safeBand = Number.parseInt(String(band), 10);
+    const safeLevel = Number.parseInt(String(level), 10);
+    if (!Number.isFinite(safeBand) || !Number.isFinite(safeLevel)) return false;
+    try { window.AndroidNativePlayer.setEqBandLevel(safeBand, safeLevel); return true; } catch (_) { return false; }
+  },
+  resetEq() {
+    if (!this.available() || typeof window.AndroidNativePlayer.resetEq !== "function") return false;
+    try { window.AndroidNativePlayer.resetEq(); return true; } catch (_) { return false; }
   }
 };
 
@@ -141,7 +161,6 @@ const handleNativePlayerState = (detail) => {
       els.status.style.color = "#ff5252";
       els.status.classList.remove("live");
     }
-    scheduleAutoRetry();
   }
 };
 
@@ -159,6 +178,8 @@ const handleNativePlayerCommand = (detail) => {
 const GLOBAL_SUBMIT_LOG_KEY = "ultra_global_submit_log";
 const LAST_STATION_KEY = "ultra_last_station";
 const UI_PREFS_KEY = "ultra_ui_prefs";
+const EQ_BAND_LIMIT = 1200;
+const EQ_BANDS = 5;
 
 let sleepTimerId = null;
 let quickToastTimerId = null;
@@ -167,7 +188,9 @@ const AUDIO_PREF_DEFAULTS = {
   audioVolume: 1,
   autoRetry: true,
   retrySeconds: 2,
-  menuFavOnly: false
+  menuFavOnly: false,
+  eqEnabled: true,
+  eqBands: [0, 0, 0, 0, 0]
 };
 
 let uiPrefs = {
@@ -179,13 +202,21 @@ let uiPrefs = {
 const loadUiPrefs = () => {
   try {
     const raw = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || "{}");
+    const rawEqBands = Array.isArray(raw.eqBands) ? raw.eqBands : AUDIO_PREF_DEFAULTS.eqBands;
+    const eqBands = Array.from({ length: EQ_BANDS }, (_, i) => {
+      const value = Number(rawEqBands[i]);
+      if (!Number.isFinite(value)) return 0;
+      return Math.min(EQ_BAND_LIMIT, Math.max(-EQ_BAND_LIMIT, Math.round(value / 100) * 100));
+    });
     uiPrefs = {
       compactUi: raw.compactUi === true,
       decorativeMotion: raw.decorativeMotion !== false,
       audioVolume: Number.isFinite(raw.audioVolume) ? Math.min(1, Math.max(0, raw.audioVolume)) : AUDIO_PREF_DEFAULTS.audioVolume,
       autoRetry: raw.autoRetry !== false,
       retrySeconds: Number.isFinite(raw.retrySeconds) ? Math.min(8, Math.max(2, raw.retrySeconds)) : AUDIO_PREF_DEFAULTS.retrySeconds,
-      menuFavOnly: raw.menuFavOnly === true
+      menuFavOnly: raw.menuFavOnly === true,
+      eqEnabled: raw.eqEnabled !== false,
+      eqBands
     };
   } catch (_) {
     uiPrefs = { compactUi: false, decorativeMotion: true, ...AUDIO_PREF_DEFAULTS };
@@ -224,10 +255,34 @@ const updateUiPrefButtons = () => {
   if (els.audioVolumeValue) {
     els.audioVolumeValue.innerText = `${Math.round(uiPrefs.audioVolume * 100)}%`;
   }
+  if (els.btnEqToggle) {
+    els.btnEqToggle.innerText = `Ecualizador: ${uiPrefs.eqEnabled ? "ON" : "OFF"}`;
+  }
+  if (Array.isArray(els.eqBandInputs)) {
+    els.eqBandInputs.forEach((input, idx) => {
+      if (!input) return;
+      const value = Number(uiPrefs.eqBands[idx] || 0);
+      input.value = String(value);
+      const valueLabel = els.eqBandValues?.[idx];
+      if (valueLabel) valueLabel.innerText = String(value);
+    });
+  }
+};
+
+const applyNativeEqPrefs = () => {
+  if (!nativePlayerBridge.available()) return;
+  nativePlayerBridge.setEqEnabled(uiPrefs.eqEnabled);
+  if (!uiPrefs.eqEnabled) return;
+  uiPrefs.eqBands.forEach((level, idx) => {
+    nativePlayerBridge.setEqBandLevel(idx, level);
+  });
 };
 
 const applyAudioPrefs = () => {
-  if (els.player) {
+  if (nativePlayerBridge.available()) {
+    nativePlayerBridge.setVolume(uiPrefs.audioVolume);
+    applyNativeEqPrefs();
+  } else if (els.player) {
     els.player.volume = uiPrefs.audioVolume;
   }
 };
@@ -258,9 +313,12 @@ const resetAudioPrefs = () => {
   uiPrefs.autoRetry = AUDIO_PREF_DEFAULTS.autoRetry;
   uiPrefs.retrySeconds = AUDIO_PREF_DEFAULTS.retrySeconds;
   uiPrefs.menuFavOnly = AUDIO_PREF_DEFAULTS.menuFavOnly;
+  uiPrefs.eqEnabled = AUDIO_PREF_DEFAULTS.eqEnabled;
+  uiPrefs.eqBands = [...AUDIO_PREF_DEFAULTS.eqBands];
 
   persistUiPrefs();
   applyAudioPrefs();
+  if (nativePlayerBridge.available()) nativePlayerBridge.resetEq();
   applyUiPrefs();
   renderList();
   showQuickToast("Audio restaurado", "success");
@@ -693,6 +751,10 @@ const init = async () => {
     btnToggleDecoMotion: document.getElementById("btnToggleDecoMotion"),
     audioVolume: document.getElementById("audioVolume"),
     audioVolumeValue: document.getElementById("audioVolumeValue"),
+    btnEqToggle: document.getElementById("btnEqToggle"),
+    btnEqReset: document.getElementById("btnEqReset"),
+    eqBandInputs: Array.from(document.querySelectorAll('[id^="eqBand"]')).filter((el) => el.tagName === "INPUT"),
+    eqBandValues: Array.from(document.querySelectorAll('[id^="eqBandVal"]')),
     btnToggleAutoRetry: document.getElementById("btnToggleAutoRetry"),
     retrySeconds: document.getElementById("retrySeconds"),
     btnMenuFavOnly: document.getElementById("btnMenuFavOnly"),
@@ -1336,6 +1398,44 @@ const setupListeners = () => {
       applyAudioPrefs();
       updateUiPrefButtons();
       showQuickToast(`Volumen ${percent}%`, "info");
+    });
+  }
+  if (els.btnEqToggle) {
+    els.btnEqToggle.addEventListener("click", () => {
+      uiPrefs.eqEnabled = !uiPrefs.eqEnabled;
+      persistUiPrefs();
+      updateUiPrefButtons();
+      if (nativePlayerBridge.available()) {
+        nativePlayerBridge.setEqEnabled(uiPrefs.eqEnabled);
+      }
+      showQuickToast(`EQ ${uiPrefs.eqEnabled ? "ON" : "OFF"}`, uiPrefs.eqEnabled ? "success" : "warn");
+    });
+  }
+  if (Array.isArray(els.eqBandInputs)) {
+    els.eqBandInputs.forEach((input, idx) => {
+      input.addEventListener("input", () => {
+        const value = Number.parseInt(input.value || "0", 10);
+        const clamped = Math.min(EQ_BAND_LIMIT, Math.max(-EQ_BAND_LIMIT, Number.isFinite(value) ? value : 0));
+        uiPrefs.eqBands[idx] = clamped;
+        persistUiPrefs();
+        const label = els.eqBandValues?.[idx];
+        if (label) label.innerText = String(clamped);
+        if (nativePlayerBridge.available() && uiPrefs.eqEnabled) {
+          nativePlayerBridge.setEqBandLevel(idx, clamped);
+        }
+      });
+    });
+  }
+  if (els.btnEqReset) {
+    els.btnEqReset.addEventListener("click", () => {
+      uiPrefs.eqBands = [...AUDIO_PREF_DEFAULTS.eqBands];
+      persistUiPrefs();
+      updateUiPrefButtons();
+      if (nativePlayerBridge.available()) {
+        nativePlayerBridge.resetEq();
+        if (uiPrefs.eqEnabled) applyNativeEqPrefs();
+      }
+      showQuickToast("EQ restaurado", "success");
     });
   }
   if(els.btnToggleAutoRetry) {

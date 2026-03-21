@@ -230,6 +230,10 @@ body.motion-compact .btn-control.playing {
 .audio-tools { display: grid; gap: 10px; }
 .audio-volume-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
 .audio-retry-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+.eq-tools { display: grid; gap: 8px; padding: 8px; border: 1px solid rgba(148,163,184,0.2); border-radius: 10px; background: rgba(2,6,23,0.35); }
+.eq-grid { display: grid; gap: 8px; }
+.eq-row { display: grid; grid-template-columns: 48px 1fr 42px; align-items: center; gap: 8px; }
+.eq-name { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
 .audio-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
 .audio-value { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-main); opacity: 0.9; min-width: 46px; text-align: right; }
 .audio-range {
@@ -275,6 +279,10 @@ body.motion-compact .btn-control.playing {
 .option-btn.ghost { background: rgba(2,6,23,0.45); color: var(--text-muted); }
 
 body.native-android .web-only {
+  display: none !important;
+}
+
+body:not(.native-android) .native-only {
   display: none !important;
 }
 

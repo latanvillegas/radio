@@ -169,5 +169,42 @@ class MainActivity : TauriActivity() {
       }
       startService(intent)
     }
+
+    @JavascriptInterface
+    fun setVolume(volume: Float) {
+      val safeVolume = volume.coerceIn(0f, 1f)
+      val intent = Intent(this@MainActivity, RadioForegroundService::class.java).apply {
+        action = RadioForegroundService.actionSetVolume
+        putExtra(RadioForegroundService.extraVolume, safeVolume)
+      }
+      startService(intent)
+    }
+
+    @JavascriptInterface
+    fun setEqEnabled(enabled: Boolean) {
+      val intent = Intent(this@MainActivity, RadioForegroundService::class.java).apply {
+        action = RadioForegroundService.actionSetEqEnabled
+        putExtra(RadioForegroundService.extraEqEnabled, enabled)
+      }
+      startService(intent)
+    }
+
+    @JavascriptInterface
+    fun setEqBandLevel(band: Int, level: Int) {
+      val intent = Intent(this@MainActivity, RadioForegroundService::class.java).apply {
+        action = RadioForegroundService.actionSetEqBand
+        putExtra(RadioForegroundService.extraEqBand, band)
+        putExtra(RadioForegroundService.extraEqLevel, level)
+      }
+      startService(intent)
+    }
+
+    @JavascriptInterface
+    fun resetEq() {
+      val intent = Intent(this@MainActivity, RadioForegroundService::class.java).apply {
+        action = RadioForegroundService.actionResetEq
+      }
+      startService(intent)
+    }
   }
 }

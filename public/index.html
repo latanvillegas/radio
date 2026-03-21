@@ -115,6 +115,19 @@
                 <option value="8">8s</option>
               </select>
             </div>
+            <div class="eq-tools native-only">
+              <div class="audio-retry-row">
+                <button id="btnEqToggle" class="option-btn ghost" type="button">Ecualizador: ON</button>
+                <button id="btnEqReset" class="option-btn" type="button">Reset EQ</button>
+              </div>
+              <div class="eq-grid">
+                <label class="eq-row" for="eqBand0"><span class="eq-name">60Hz</span><input id="eqBand0" class="audio-range" type="range" min="-1200" max="1200" step="100" value="0" aria-label="Banda 60Hz"><span id="eqBandVal0" class="audio-value">0</span></label>
+                <label class="eq-row" for="eqBand1"><span class="eq-name">230Hz</span><input id="eqBand1" class="audio-range" type="range" min="-1200" max="1200" step="100" value="0" aria-label="Banda 230Hz"><span id="eqBandVal1" class="audio-value">0</span></label>
+                <label class="eq-row" for="eqBand2"><span class="eq-name">910Hz</span><input id="eqBand2" class="audio-range" type="range" min="-1200" max="1200" step="100" value="0" aria-label="Banda 910Hz"><span id="eqBandVal2" class="audio-value">0</span></label>
+                <label class="eq-row" for="eqBand3"><span class="eq-name">3.6k</span><input id="eqBand3" class="audio-range" type="range" min="-1200" max="1200" step="100" value="0" aria-label="Banda 3.6kHz"><span id="eqBandVal3" class="audio-value">0</span></label>
+                <label class="eq-row" for="eqBand4"><span class="eq-name">14k</span><input id="eqBand4" class="audio-range" type="range" min="-1200" max="1200" step="100" value="0" aria-label="Banda 14kHz"><span id="eqBandVal4" class="audio-value">0</span></label>
+              </div>
+            </div>
             <button id="btnMenuFavOnly" class="option-btn ghost" type="button">Solo favoritas (menú): OFF</button>
             <button id="btnResetAudioPrefs" class="option-btn" type="button">Restaurar audio</button>
           </div>
