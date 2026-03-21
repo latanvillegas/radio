@@ -94,7 +94,14 @@
           <label class="opt-label">Interfaz</label>
           <div class="options-grid">
             <button id="btnToggleCompactUi" class="option-btn ghost" type="button">Modo compacto: OFF</button>
-            <button id="btnToggleDecoMotion" class="option-btn ghost" type="button">Animaciones decorativas: ON</button>
+            <button id="btnToggleDecoMotion" class="option-btn ghost" type="button">Animaciones decorativas: SI</button>
+            <button id="btnTogglePlayerMotion" class="option-btn ghost" type="button">Animaciones reproductor: SI</button>
+            <button id="btnToggleListMotion" class="option-btn ghost" type="button">Animaciones lista: SI</button>
+          </div>
+          <div class="motion-speed-row">
+            <span class="audio-label">Acelerador del reproductor</span>
+            <input id="playerMotion" class="audio-range" type="range" min="60" max="180" step="5" value="100" aria-label="Velocidad de animación del reproductor">
+            <span id="playerMotionValue" class="audio-value">100%</span>
           </div>
         </div>
 

@@ -19,6 +19,7 @@
   --shadow-soft: 0 14px 34px rgba(2, 6, 23, 0.35);
   --shadow-strong: 0 24px 55px rgba(2, 6, 23, 0.52);
   --ring: 0 0 0 1px rgba(148, 163, 184, 0.24), 0 0 0 4px rgba(255, 77, 77, 0.12);
+  --player-motion-mult: 1;
   
   /* MEDIDAS TOUCH */
   --touch-target: 48px;
@@ -106,16 +107,16 @@ body.motion-compact .site-header,
 body.motion-compact .sidebar,
 body.motion-compact .stations-panel,
 body.motion-compact .site-footer {
-  animation-duration: 260ms !important;
+  animation-duration: calc(420ms * var(--player-motion-mult)) !important;
 }
 
 body.motion-compact .station-grid .station-card {
-  animation-duration: 180ms !important;
+  animation-duration: calc(320ms * var(--player-motion-mult)) !important;
   animation-delay: 0ms !important;
 }
 
 body.motion-compact .btn-control.playing {
-  animation-duration: 1.2s;
+  animation-duration: calc(2.2s * var(--player-motion-mult));
 }
 
 .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
@@ -201,7 +202,7 @@ body.motion-compact .btn-control.playing {
 .track-title { margin: 0; font-size: clamp(1.6rem, 2.4vw, 2.1rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.03em; }
 .track-meta { font-size: 0.93rem; color: var(--text-muted); margin-top: 0.6rem; font-weight: 500; }
 .track-title.track-change,
-.track-meta.track-change { animation: textSwap 260ms ease both; }
+.track-meta.track-change { animation: textSwap calc(420ms * var(--player-motion-mult)) ease both; }
 .meta-badge { display: inline-block; background: linear-gradient(135deg, #ff5b5b 0%, #ef4444 100%); color: #fff; font-size: 0.68rem; padding: 5px 10px; border-radius: 999px; margin-top: 10px; font-weight: 700; box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35); }
 .now-playing-container { margin: 1.5rem 0; min-height: 2.5rem; display: flex; justify-content: center; align-items: center; position: relative; z-index: 1; }
 .track-artist { margin: 0; color: var(--text-main); font-size: 1.1rem; font-weight: 600; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
@@ -212,7 +213,7 @@ body.motion-compact .btn-control.playing {
 .play-btn { width: 74px; height: 74px; border-radius: 50%; background: var(--btn-bg); color: var(--btn-text); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 14px 28px rgba(239,68,68,0.34); }
 .play-btn:active { transform: scale(0.95); }
 .play-btn:hover { box-shadow: 0 20px 34px rgba(239,68,68,0.42); }
-.btn-control.playing { animation: pulseLive 1.8s ease-in-out infinite; }
+.btn-control.playing { animation: pulseLive calc(1.8s * var(--player-motion-mult)) ease-in-out infinite; }
 .play-btn svg { width: 32px; height: 32px; fill: currentColor; }
 .icon-pause, .playing .icon-play { display: none; }
 .playing .icon-pause { display: block; }
@@ -229,6 +230,7 @@ body.motion-compact .btn-control.playing {
 .option-select { min-height: 42px; }
 .audio-tools { display: grid; gap: 10px; }
 .audio-volume-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.motion-speed-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; margin-top: 10px; }
 .audio-retry-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
 .eq-tools { display: grid; gap: 8px; padding: 8px; border: 1px solid rgba(148,163,184,0.2); border-radius: 10px; background: rgba(2,6,23,0.35); }
 .eq-grid { display: grid; gap: 8px; }
@@ -383,6 +385,45 @@ body.deco-off .site-footer {
   opacity: 1 !important;
   transform: none !important;
 }
+
+body.motion-player-off .btn-control.playing,
+body.motion-player-off .track-title.track-change,
+body.motion-player-off .track-meta.track-change {
+  animation: none !important;
+}
+
+body.motion-player-off .player-section,
+body.motion-player-off .play-btn,
+body.motion-player-off .sec-btn,
+body.motion-player-off .timer-text,
+body.motion-player-off .status-indicator,
+body.motion-player-off .meta-badge {
+  transition: none !important;
+}
+
+body.motion-player-off .player-waves-container {
+  display: none !important;
+}
+
+body.motion-player-off.station-switching .player-section {
+  box-shadow: var(--shadow-soft) !important;
+}
+
+body.motion-list-off .station-grid .station-card,
+body.motion-list-off .station-card.just-activated,
+body.motion-list-off .station-card.startup-focus {
+  animation: none !important;
+}
+
+body.motion-list-off .station-grid .station-card {
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+body.motion-list-off .station-card::before {
+  display: none !important;
+}
+
 .theme-btn { width: 42px; height: 42px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; position: relative; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .theme-btn:hover { transform: scale(1.1); }
 .theme-btn.active { border-color: #fff; box-shadow: 0 0 15px var(--accent); transform: scale(1.15); }
@@ -485,20 +526,20 @@ body.deco-off .site-footer {
 .station-grid::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
 .station-grid::-webkit-scrollbar-thumb:hover { background: var(--accent-hover); }
 
-.station-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); padding: 1rem; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; position: relative; overflow: hidden; min-height: 72px; }
-.station-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(255,255,255,0.06), transparent 45%); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+.station-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); padding: 1rem; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all calc(320ms * var(--player-motion-mult)); position: relative; overflow: hidden; min-height: 72px; }
+.station-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(255,255,255,0.06), transparent 45%); opacity: 0; transition: opacity calc(320ms * var(--player-motion-mult)); pointer-events: none; }
 .station-card:hover { background: var(--card-hover); transform: translateY(-3px); border-color: rgba(255, 77, 77, 0.65); box-shadow: 0 12px 26px rgba(2,6,23,0.28); }
 .station-card:hover::before { opacity: 1; }
 .station-card.active { border-color: var(--accent); background: rgba(255,255,255,0.06); box-shadow: 0 10px 24px rgba(255,77,77,0.16); }
-.station-card.just-activated { animation: stationActivate 520ms cubic-bezier(.22,.85,.25,1) both; }
+.station-card.just-activated { animation: stationActivate calc(760ms * var(--player-motion-mult)) cubic-bezier(.22,.85,.25,1) both; }
 .station-card.startup-focus { animation: startupFocus 900ms cubic-bezier(.2,.7,.2,1) both; }
-.station-grid .station-card { opacity: 0; animation: fadeUpIn 420ms cubic-bezier(.2,.7,.2,1) both; }
-.station-grid .station-card:nth-child(1) { animation-delay: 20ms; }
-.station-grid .station-card:nth-child(2) { animation-delay: 45ms; }
-.station-grid .station-card:nth-child(3) { animation-delay: 70ms; }
-.station-grid .station-card:nth-child(4) { animation-delay: 95ms; }
-.station-grid .station-card:nth-child(5) { animation-delay: 120ms; }
-.station-grid .station-card:nth-child(n+6) { animation-delay: 145ms; }
+.station-grid .station-card { opacity: 0; animation: fadeUpIn calc(560ms * var(--player-motion-mult)) cubic-bezier(.2,.7,.2,1) both; }
+.station-grid .station-card:nth-child(1) { animation-delay: 35ms; }
+.station-grid .station-card:nth-child(2) { animation-delay: 70ms; }
+.station-grid .station-card:nth-child(3) { animation-delay: 105ms; }
+.station-grid .station-card:nth-child(4) { animation-delay: 140ms; }
+.station-grid .station-card:nth-child(5) { animation-delay: 175ms; }
+.station-grid .station-card:nth-child(n+6) { animation-delay: 210ms; }
 
 @keyframes stationActivate {
   0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,77,77,0); }
@@ -514,7 +555,7 @@ body.deco-off .site-footer {
 
 body.station-switching .player-section {
   box-shadow: inset 0 0 0 1px rgba(255, 77, 77, 0.4), 0 24px 50px rgba(255, 77, 77, 0.14);
-  transition: box-shadow 0.4s ease;
+  transition: box-shadow calc(700ms * var(--player-motion-mult)) ease;
 }
 
 .station-grid.is-loading .station-card {

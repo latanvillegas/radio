@@ -180,6 +180,8 @@ const LAST_STATION_KEY = "ultra_last_station";
 const UI_PREFS_KEY = "ultra_ui_prefs";
 const EQ_BAND_LIMIT = 1200;
 const EQ_BANDS = 5;
+const PLAYER_MOTION_MIN = 60;
+const PLAYER_MOTION_MAX = 180;
 
 let sleepTimerId = null;
 let quickToastTimerId = null;
@@ -189,6 +191,9 @@ const AUDIO_PREF_DEFAULTS = {
   autoRetry: true,
   retrySeconds: 2,
   menuFavOnly: false,
+  playerMotion: 100,
+  playerMotionEnabled: true,
+  listMotionEnabled: true,
   eqEnabled: true,
   eqBands: [0, 0, 0, 0, 0]
 };
@@ -215,6 +220,11 @@ const loadUiPrefs = () => {
       autoRetry: raw.autoRetry !== false,
       retrySeconds: Number.isFinite(raw.retrySeconds) ? Math.min(8, Math.max(2, raw.retrySeconds)) : AUDIO_PREF_DEFAULTS.retrySeconds,
       menuFavOnly: raw.menuFavOnly === true,
+      playerMotion: Number.isFinite(raw.playerMotion)
+        ? Math.min(PLAYER_MOTION_MAX, Math.max(PLAYER_MOTION_MIN, Math.round(raw.playerMotion / 5) * 5))
+        : AUDIO_PREF_DEFAULTS.playerMotion,
+      playerMotionEnabled: raw.playerMotionEnabled !== false,
+      listMotionEnabled: raw.listMotionEnabled !== false,
       eqEnabled: raw.eqEnabled !== false,
       eqBands
     };
@@ -230,6 +240,10 @@ const persistUiPrefs = () => {
 const applyUiPrefs = () => {
   document.body.classList.toggle("compact-ui", uiPrefs.compactUi);
   document.body.classList.toggle("deco-off", !uiPrefs.decorativeMotion);
+  document.body.classList.toggle("motion-player-off", uiPrefs.playerMotionEnabled === false);
+  document.body.classList.toggle("motion-list-off", uiPrefs.listMotionEnabled === false);
+  const motionMult = Math.min(1.8, Math.max(0.6, (uiPrefs.playerMotion || 100) / 100));
+  document.documentElement.style.setProperty("--player-motion-mult", String(motionMult));
   updateUiPrefButtons();
 };
 
@@ -238,7 +252,13 @@ const updateUiPrefButtons = () => {
     els.btnToggleCompactUi.innerText = `Modo compacto: ${uiPrefs.compactUi ? "ON" : "OFF"}`;
   }
   if (els.btnToggleDecoMotion) {
-    els.btnToggleDecoMotion.innerText = `Animaciones decorativas: ${uiPrefs.decorativeMotion ? "ON" : "OFF"}`;
+    els.btnToggleDecoMotion.innerText = `Animaciones decorativas: ${uiPrefs.decorativeMotion ? "SI" : "NO"}`;
+  }
+  if (els.btnTogglePlayerMotion) {
+    els.btnTogglePlayerMotion.innerText = `Animaciones reproductor: ${uiPrefs.playerMotionEnabled ? "SI" : "NO"}`;
+  }
+  if (els.btnToggleListMotion) {
+    els.btnToggleListMotion.innerText = `Animaciones lista: ${uiPrefs.listMotionEnabled ? "SI" : "NO"}`;
   }
   if (els.btnToggleAutoRetry) {
     els.btnToggleAutoRetry.innerText = `Auto-reintento: ${uiPrefs.autoRetry ? "ON" : "OFF"}`;
@@ -254,6 +274,12 @@ const updateUiPrefButtons = () => {
   }
   if (els.audioVolumeValue) {
     els.audioVolumeValue.innerText = `${Math.round(uiPrefs.audioVolume * 100)}%`;
+  }
+  if (els.playerMotion) {
+    els.playerMotion.value = String(uiPrefs.playerMotion || AUDIO_PREF_DEFAULTS.playerMotion);
+  }
+  if (els.playerMotionValue) {
+    els.playerMotionValue.innerText = `${uiPrefs.playerMotion || AUDIO_PREF_DEFAULTS.playerMotion}%`;
   }
   if (els.btnEqToggle) {
     els.btnEqToggle.innerText = `Ecualizador: ${uiPrefs.eqEnabled ? "ON" : "OFF"}`;
@@ -313,6 +339,9 @@ const resetAudioPrefs = () => {
   uiPrefs.autoRetry = AUDIO_PREF_DEFAULTS.autoRetry;
   uiPrefs.retrySeconds = AUDIO_PREF_DEFAULTS.retrySeconds;
   uiPrefs.menuFavOnly = AUDIO_PREF_DEFAULTS.menuFavOnly;
+  uiPrefs.playerMotion = AUDIO_PREF_DEFAULTS.playerMotion;
+  uiPrefs.playerMotionEnabled = AUDIO_PREF_DEFAULTS.playerMotionEnabled;
+  uiPrefs.listMotionEnabled = AUDIO_PREF_DEFAULTS.listMotionEnabled;
   uiPrefs.eqEnabled = AUDIO_PREF_DEFAULTS.eqEnabled;
   uiPrefs.eqBands = [...AUDIO_PREF_DEFAULTS.eqBands];
 
@@ -749,6 +778,10 @@ const init = async () => {
     btnSleepCancel: document.getElementById("btnSleepCancel"),
     btnToggleCompactUi: document.getElementById("btnToggleCompactUi"),
     btnToggleDecoMotion: document.getElementById("btnToggleDecoMotion"),
+    btnTogglePlayerMotion: document.getElementById("btnTogglePlayerMotion"),
+    btnToggleListMotion: document.getElementById("btnToggleListMotion"),
+    playerMotion: document.getElementById("playerMotion"),
+    playerMotionValue: document.getElementById("playerMotionValue"),
     audioVolume: document.getElementById("audioVolume"),
     audioVolumeValue: document.getElementById("audioVolumeValue"),
     btnEqToggle: document.getElementById("btnEqToggle"),
@@ -944,16 +977,19 @@ const triggerSharedStationTransition = (station) => {
       card.classList.remove("just-activated");
       void card.offsetWidth;
       card.classList.add("just-activated");
-      setTimeout(() => card.classList.remove("just-activated"), 520);
+      setTimeout(() => card.classList.remove("just-activated"), 760);
     }
   }
 
-  setTimeout(() => document.body.classList.remove("station-switching"), 520);
+  setTimeout(() => document.body.classList.remove("station-switching"), 760);
 };
 
 const playStation = (station, autoplay = true) => {
-  if (currentStation && currentStation.name === station.name) {
-    if (autoplay) togglePlay();
+  if (currentStation && currentStation.name === station.name && currentStation.url === station.url) {
+    if (autoplay) {
+      if (isPlaying) togglePlay();
+      else startPlaybackForCurrentStation();
+    }
     return;
   }
   triggerSharedStationTransition(station);
@@ -982,39 +1018,7 @@ const playStation = (station, autoplay = true) => {
     return;
   }
 
-  if (nativePlayerBridge.play(station)) {
-    if(els.status) {
-      els.status.innerText = "CONECTANDO...";
-      els.status.style.color = "";
-    }
-    return;
-  }
-
-  if (isAndroidRuntime()) {
-    setPlayingState(false);
-    if (els.status) {
-      els.status.innerText = "Reproductor nativo no disponible";
-      els.status.style.color = "#ff5252";
-    }
-    return;
-  }
-
-  if (!els.player) return;
-
-  try {
-      els.player.src = station.url; 
-      els.player.volume = 1; 
-      const p = els.player.play();
-      if (p !== undefined) {
-        p.then(() => { 
-          setPlayingState(true); 
-        }).catch(e => {
-          // Bloqueo de Autoplay (Esto es normal al inicio)
-          setPlayingState(false);
-          if(els.status) els.status.innerText = "LISTO (CLICK PLAY)";
-        });
-      }
-  } catch (err) { console.error("Error Audio Critico", err); }
+  startPlaybackForCurrentStation();
 };
 
 const togglePlay = () => {
@@ -1025,8 +1029,7 @@ const togglePlay = () => {
       nativePlayerBridge.pause();
       setPlayingState(false);
     } else {
-      nativePlayerBridge.resume();
-      setPlayingState(true);
+      startPlaybackForCurrentStation();
     }
     return;
   }
@@ -1043,19 +1046,7 @@ const togglePlay = () => {
   if (!els.player) return;
 
   if (els.player.paused) {
-    const p = els.player.play();
-    if (p !== undefined) {
-      p.then(() => setPlayingState(true))
-       .catch((e) => {
-         console.log("Error manual:", e);
-         setPlayingState(false);
-         if(els.status) {
-           els.status.innerText = "SIN SEÑAL / CAMBIANDO...";
-           els.status.style.color = "#ff5252";
-         }
-         scheduleAutoRetry();
-       });
-    }
+    startPlaybackForCurrentStation();
   } else {
     els.player.pause();
     setPlayingState(false);
@@ -1101,6 +1092,47 @@ const skipStation = (direction) => {
     if (newIndex < 0) newIndex = stations.length - 1;
   }
   playStation(stations[newIndex]);
+};
+
+const startPlaybackForCurrentStation = () => {
+  if (!currentStation) return;
+
+  if (nativePlayerBridge.play(currentStation)) {
+    if(els.status) {
+      els.status.innerText = "CONECTANDO...";
+      els.status.style.color = "";
+    }
+    return;
+  }
+
+  if (isAndroidRuntime()) {
+    setPlayingState(false);
+    if (els.status) {
+      els.status.innerText = "Reproductor nativo no disponible";
+      els.status.style.color = "#ff5252";
+    }
+    return;
+  }
+
+  if (!els.player) return;
+
+  try {
+    els.player.src = currentStation.url;
+    els.player.volume = uiPrefs.audioVolume;
+    const p = els.player.play();
+    if (p !== undefined) {
+      p.then(() => {
+        setPlayingState(true);
+      }).catch(() => {
+        setPlayingState(false);
+        if(els.status) {
+          els.status.innerText = "LISTO (CLICK PLAY)";
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Error Audio Critico", err);
+  }
 };
 
 // --- GESTIÓN DE NOTIFICACIONES ---
@@ -1389,6 +1421,23 @@ const setupListeners = () => {
       applyUiPrefs();
     });
   }
+  if(els.btnTogglePlayerMotion) {
+    els.btnTogglePlayerMotion.addEventListener("click", () => {
+      uiPrefs.playerMotionEnabled = !uiPrefs.playerMotionEnabled;
+      persistUiPrefs();
+      applyUiPrefs();
+      showQuickToast(`Animaciones reproductor ${uiPrefs.playerMotionEnabled ? "SI" : "NO"}`, uiPrefs.playerMotionEnabled ? "success" : "warn");
+    });
+  }
+  if(els.btnToggleListMotion) {
+    els.btnToggleListMotion.addEventListener("click", () => {
+      uiPrefs.listMotionEnabled = !uiPrefs.listMotionEnabled;
+      persistUiPrefs();
+      applyUiPrefs();
+      renderList();
+      showQuickToast(`Animaciones lista ${uiPrefs.listMotionEnabled ? "SI" : "NO"}`, uiPrefs.listMotionEnabled ? "success" : "warn");
+    });
+  }
   if(els.audioVolume) {
     els.audioVolume.addEventListener("input", () => {
       const percent = Number.parseInt(els.audioVolume.value || "100", 10);
@@ -1398,6 +1447,17 @@ const setupListeners = () => {
       applyAudioPrefs();
       updateUiPrefButtons();
       showQuickToast(`Volumen ${percent}%`, "info");
+    });
+  }
+  if(els.playerMotion) {
+    els.playerMotion.addEventListener("input", () => {
+      const next = Number.parseInt(els.playerMotion.value || "100", 10);
+      uiPrefs.playerMotion = Math.min(PLAYER_MOTION_MAX, Math.max(PLAYER_MOTION_MIN, Number.isFinite(next) ? next : AUDIO_PREF_DEFAULTS.playerMotion));
+      persistUiPrefs();
+      applyUiPrefs();
+    });
+    els.playerMotion.addEventListener("change", () => {
+      showQuickToast(`Acelerador ${uiPrefs.playerMotion}%`, "info");
     });
   }
   if (els.btnEqToggle) {
