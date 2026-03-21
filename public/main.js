@@ -140,6 +140,7 @@ const handleNativePlayerState = (detail) => {
   }
 
   if (state === "playing") {
+    recordStreamMetric(currentStation, true, "native_playing");
     setPlayingState(true);
     if (els.status) els.status.innerText = message || "EN VIVO";
     return;
@@ -155,6 +156,7 @@ const handleNativePlayerState = (detail) => {
   }
 
   if (state === "error") {
+    recordStreamMetric(currentStation, false, message || "native_error");
     setPlayingState(false);
     if (els.status) {
       els.status.innerText = message || "SIN SEÑAL / CAMBIANDO...";
@@ -178,13 +180,17 @@ const handleNativePlayerCommand = (detail) => {
 const GLOBAL_SUBMIT_LOG_KEY = "ultra_global_submit_log";
 const LAST_STATION_KEY = "ultra_last_station";
 const UI_PREFS_KEY = "ultra_ui_prefs";
+const RUNTIME_ERRORS_KEY = "ultra_runtime_errors";
+const STREAM_METRICS_KEY = "ultra_stream_metrics";
 const EQ_BAND_LIMIT = 1200;
 const EQ_BANDS = 5;
-const PLAYER_MOTION_MIN = 60;
-const PLAYER_MOTION_MAX = 180;
+const PLAYER_MOTION_MIN = 0;
+const PLAYER_MOTION_MAX = 100;
+const MAX_RUNTIME_ERRORS = 60;
 
 let sleepTimerId = null;
 let quickToastTimerId = null;
+let autoRetryTimeoutId = null;
 
 const AUDIO_PREF_DEFAULTS = {
   audioVolume: 1,
@@ -204,6 +210,63 @@ let uiPrefs = {
   ...AUDIO_PREF_DEFAULTS
 };
 
+const safeJsonParse = (raw, fallback) => {
+  try {
+    return JSON.parse(raw);
+  } catch (_) {
+    return fallback;
+  }
+};
+
+const appendRuntimeError = (source, errLike) => {
+  const now = new Date().toISOString();
+  const message = String(errLike?.message || errLike || "Error desconocido").slice(0, 400);
+  const stack = String(errLike?.stack || "").slice(0, 1200);
+  const previous = safeJsonParse(localStorage.getItem(RUNTIME_ERRORS_KEY) || "[]", []);
+  const next = Array.isArray(previous) ? previous : [];
+  next.push({ ts: now, source, message, stack });
+  while (next.length > MAX_RUNTIME_ERRORS) next.shift();
+  localStorage.setItem(RUNTIME_ERRORS_KEY, JSON.stringify(next));
+};
+
+const registerRuntimeErrorHandlers = () => {
+  window.addEventListener("error", (event) => {
+    appendRuntimeError("window.error", event?.error || event?.message || "Error de ventana");
+  });
+
+  window.addEventListener("unhandledrejection", (event) => {
+    appendRuntimeError("unhandledrejection", event?.reason || "Promesa rechazada sin manejo");
+  });
+};
+
+const recordStreamMetric = (station, ok, reason = "") => {
+  if (!station?.name || !station?.url) return;
+  const key = stationKey(station);
+  const metrics = safeJsonParse(localStorage.getItem(STREAM_METRICS_KEY) || "{}", {});
+  const safeMetrics = metrics && typeof metrics === "object" ? metrics : {};
+  const current = safeMetrics[key] || {
+    name: station.name,
+    url: station.url,
+    ok: 0,
+    fail: 0,
+    lastReason: "",
+    lastOkAt: "",
+    lastFailAt: ""
+  };
+
+  if (ok) {
+    current.ok += 1;
+    current.lastOkAt = new Date().toISOString();
+  } else {
+    current.fail += 1;
+    current.lastFailAt = new Date().toISOString();
+    current.lastReason = String(reason || "sin_detalle").slice(0, 180);
+  }
+
+  safeMetrics[key] = current;
+  localStorage.setItem(STREAM_METRICS_KEY, JSON.stringify(safeMetrics));
+};
+
 const loadUiPrefs = () => {
   try {
     const raw = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || "{}");
@@ -214,10 +277,10 @@ const loadUiPrefs = () => {
       return Math.min(EQ_BAND_LIMIT, Math.max(-EQ_BAND_LIMIT, Math.round(value / 100) * 100));
     });
     
-    // Validar playerMotion - forzar a rango válido [60, 180]
+    // Validar playerMotion - forzar a rango válido [0, 100]
     let playerMotionVal = AUDIO_PREF_DEFAULTS.playerMotion;
     if (Number.isFinite(raw.playerMotion)) {
-      const rounded = Math.round(raw.playerMotion / 5) * 5;
+      const rounded = Math.round(raw.playerMotion);
       playerMotionVal = Math.min(PLAYER_MOTION_MAX, Math.max(PLAYER_MOTION_MIN, rounded));
     }
     
@@ -246,9 +309,11 @@ const persistUiPrefs = () => {
 const applyUiPrefs = () => {
   document.body.classList.toggle("compact-ui", uiPrefs.compactUi);
   document.body.classList.toggle("deco-off", !uiPrefs.decorativeMotion);
-  document.body.classList.toggle("motion-player-off", uiPrefs.playerMotionEnabled === false);
+  const playerMotionDisabled = uiPrefs.playerMotionEnabled === false || Number(uiPrefs.playerMotion) <= 0;
+  document.body.classList.toggle("motion-player-off", playerMotionDisabled);
   document.body.classList.toggle("motion-list-off", uiPrefs.listMotionEnabled === false);
-  const motionMult = Math.min(1.8, Math.max(0.6, (uiPrefs.playerMotion || 100) / 100));
+  const safePlayerMotion = Number.isFinite(uiPrefs.playerMotion) ? uiPrefs.playerMotion : AUDIO_PREF_DEFAULTS.playerMotion;
+  const motionMult = Math.min(1, Math.max(0, safePlayerMotion / 100));
   document.documentElement.style.setProperty("--player-motion-mult", String(motionMult));
   updateUiPrefButtons();
 };
@@ -261,7 +326,8 @@ const updateUiPrefButtons = () => {
     els.btnToggleDecoMotion.innerText = `Animaciones decorativas: ${uiPrefs.decorativeMotion ? "SI" : "NO"}`;
   }
   if (els.btnTogglePlayerMotion) {
-    els.btnTogglePlayerMotion.innerText = `Animaciones reproductor: ${uiPrefs.playerMotionEnabled ? "SI" : "NO"}`;
+    const playerMotionActive = uiPrefs.playerMotionEnabled && Number(uiPrefs.playerMotion) > 0;
+    els.btnTogglePlayerMotion.innerText = `Animaciones reproductor: ${playerMotionActive ? "SI" : "NO"}`;
   }
   if (els.btnToggleListMotion) {
     els.btnToggleListMotion.innerText = `Animaciones lista: ${uiPrefs.listMotionEnabled ? "SI" : "NO"}`;
@@ -366,7 +432,11 @@ const scheduleAutoRetry = () => {
     els.status.innerText = `REINTENTANDO EN ${uiPrefs.retrySeconds}s...`;
     els.status.style.color = "#f59e0b";
   }
-  setTimeout(() => skipStation(1), waitMs);
+  if (autoRetryTimeoutId) clearTimeout(autoRetryTimeoutId);
+  autoRetryTimeoutId = setTimeout(() => {
+    autoRetryTimeoutId = null;
+    skipStation(1);
+  }, waitMs);
 };
 
 const stopPlaybackNow = () => {
@@ -752,6 +822,7 @@ const init = async () => {
   console.log("Iniciando Sistema v9.5...");
   applyMotionProfile();
   hardenExternalLinks();
+  registerRuntimeErrorHandlers();
   
   els = {
     player: document.getElementById("radioPlayer"),
@@ -824,10 +895,21 @@ const init = async () => {
     stations = mergeStationSources(customStations, globalStations);
     isStationsLoading = false;
   } catch (e) {
-    localStorage.clear();
+    appendRuntimeError("init.loadStations", e);
+    localStorage.removeItem("ultra_custom");
+    localStorage.removeItem("ultra_favs");
+    localStorage.removeItem(LAST_STATION_KEY);
     stations = [...defaultStations];
     favorites = new Set();
     isStationsLoading = false;
+  }
+
+  if (els.status) {
+    els.status.setAttribute("role", "status");
+    els.status.setAttribute("aria-live", "polite");
+  }
+  if (els.timer) {
+    els.timer.setAttribute("aria-live", "off");
   }
 
   const savedTheme = localStorage.getItem("ultra_theme") || "default";
@@ -1136,9 +1218,11 @@ const startPlaybackForCurrentStation = () => {
     // Si play() devuelve Promise (navegadores modernos)
     if (p !== undefined && typeof p.then === 'function') {
       p.then(() => {
+        recordStreamMetric(currentStation, true, "html5_play");
         // Solo actualizar si no se dispara el listener 'play'
         if (!isPlaying) setPlayingState(true);
       }).catch(() => {
+        recordStreamMetric(currentStation, false, "html5_play_rejected");
         setPlayingState(false);
         if(els.status) {
           els.status.innerText = "LISTO (CLICK PLAY)";
@@ -1161,6 +1245,8 @@ const startPlaybackForCurrentStation = () => {
       };
     }
   } catch (err) {
+    recordStreamMetric(currentStation, false, "html5_exception");
+    appendRuntimeError("startPlaybackForCurrentStation", err);
     console.error("Error Audio Critico", err);
     if(els.status) {
       els.status.innerText = "ERROR";
@@ -1429,6 +1515,7 @@ const setupListeners = () => {
     // ERROR - Falla la emisora
     els.player.addEventListener('error', (e) => {
       if (nativePlayerBridge.available()) return;
+      recordStreamMetric(currentStation, false, "player_error_event");
       console.warn("Emisora caída", e);
       setPlayingState(false);
       
@@ -1448,6 +1535,7 @@ const setupListeners = () => {
     // ABORT - Canceló descarga
     els.player.addEventListener('abort', () => {
       if (nativePlayerBridge.available()) return;
+      recordStreamMetric(currentStation, false, "player_abort");
       console.warn("Descarga abortada");
       if(els.status) els.status.innerText = "DESCARGA CANCELADA";
     });
@@ -1455,6 +1543,7 @@ const setupListeners = () => {
     // ENDED - Termina stream (en live radio normalmente no ocurre)
     els.player.addEventListener('ended', () => {
       if (nativePlayerBridge.available()) return;
+      recordStreamMetric(currentStation, false, "player_ended");
       console.log("Stream finalizado");
       setPlayingState(false);
     });
@@ -1518,7 +1607,8 @@ const setupListeners = () => {
       uiPrefs.playerMotionEnabled = !uiPrefs.playerMotionEnabled;
       persistUiPrefs();
       applyUiPrefs();
-      showQuickToast(`Animaciones reproductor ${uiPrefs.playerMotionEnabled ? "SI" : "NO"}`, uiPrefs.playerMotionEnabled ? "success" : "warn");
+      const playerMotionActive = uiPrefs.playerMotionEnabled && Number(uiPrefs.playerMotion) > 0;
+      showQuickToast(`Animaciones reproductor ${playerMotionActive ? "SI" : "NO"}`, playerMotionActive ? "success" : "warn");
     });
   }
   if(els.btnToggleListMotion) {
@@ -1549,7 +1639,11 @@ const setupListeners = () => {
       applyUiPrefs();
     });
     els.playerMotion.addEventListener("change", () => {
-      showQuickToast(`Acelerador ${uiPrefs.playerMotion}%`, "info");
+      if (uiPrefs.playerMotion <= 0) {
+        showQuickToast("Animacion del reproductor desactivada", "warn");
+      } else {
+        showQuickToast(`Acelerador ${uiPrefs.playerMotion}%`, "info");
+      }
     });
   }
   if (els.btnEqToggle) {
