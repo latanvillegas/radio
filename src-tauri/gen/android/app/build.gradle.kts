@@ -13,6 +13,29 @@ val tauriProperties = Properties().apply {
     }
 }
 
+val localSigningProperties = Properties().apply {
+    val signingFile = file("../../../../.android-signing-local.env")
+    if (signingFile.exists()) {
+        signingFile.inputStream().use { load(it) }
+    }
+}
+
+fun signingValue(key: String): String? {
+    return System.getenv(key)
+        ?: localSigningProperties.getProperty(key)
+}
+
+val keystorePath = signingValue("KEYSTORE_FILE")
+val releaseKeyAlias = signingValue("KEY_ALIAS")
+val releaseKeyPassword = signingValue("KEY_PASSWORD")
+val releaseKeystoreFile = keystorePath?.let {
+    if (it.startsWith("/")) file(it) else file("../../../../$it")
+}
+val hasReleaseSigning =
+    releaseKeystoreFile != null &&
+    !releaseKeyAlias.isNullOrBlank() &&
+    !releaseKeyPassword.isNullOrBlank()
+
 android {
     compileSdk = 36
     namespace = "online.latanvillegas.radiosatelital"
@@ -23,6 +46,19 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+    }
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseKeyPassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+                enableV1Signing = false
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
     }
     buildTypes {
         getByName("debug") {
@@ -37,6 +73,9 @@ android {
             }
         }
         getByName("release") {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
