@@ -43,7 +43,6 @@ class MainActivity : TauriActivity() {
     super.onCreate(savedInstanceState)
 
     requestNotificationPermissionIfNeeded()
-    startRadioForegroundService()
     attachNativeBridgeIfPossible()
 
     val filter = IntentFilter().apply {
@@ -77,11 +76,6 @@ class MainActivity : TauriActivity() {
         )
       }
     }
-  }
-
-  private fun startRadioForegroundService() {
-    val serviceIntent = Intent(this, RadioForegroundService::class.java)
-    ContextCompat.startForegroundService(this, serviceIntent)
   }
 
   private fun attachNativeBridgeIfPossible() {
