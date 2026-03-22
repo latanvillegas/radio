@@ -31,7 +31,7 @@ jobs:
       - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Block legacy Tauri references
+      - name: Validate native stack policy
         run: bash scripts/verify-no-tauri.sh
 
       - name: Android lint

@@ -15,7 +15,7 @@ make clean                    # Alternativa
 # Análisis estático
 ./build.sh analyze            # Ejecutar Detekt
 make analyze                  # Alternativa
-detekt --input src-tauri      # Detekt directo
+detekt --input android/app/src/main      # Detekt directo
 ```
 
 ## 📱 Debugging & ADB
@@ -160,7 +160,7 @@ $JAVA_HOME = /usr/lib/jvm/java-17-openjdk-amd64
 .gradle/                             # Cache del proyecto
 
 # Proyecto
-./src-tauri/                         # Código fuente
+./android/app/src/main/              # Código fuente Kotlin/Android
 ./build/                             # Artefactos compilados
 .devcontainer/                       # Config de contenedor
 ```

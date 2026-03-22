@@ -166,15 +166,14 @@ Si quieres compilar localmente sin usar GitHub Actions:
 
 ```bash
 # En la raíz del proyecto
-npm install
-npm run tauri build -- --target aarch64-linux-android
+bash scripts/with-java21.sh ./android/gradlew -p android :app:assembleRelease --no-daemon
 ```
 
 Para firmar el APK generado:
 
 ```bash
 # Encontrar el APK generado
-APK=$(find src-tauri/target -name "*.apk" | head -1)
+APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
 
 # Firmar con jarsigner
 jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
@@ -224,7 +223,6 @@ keytool -list -keystore android-keystore.jks
 
 - [Android App Signing Documentation](https://developer.android.com/studio/publish/app-signing)
 - [keytool Reference](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html)
-- [Tauri Android Guide](https://tauri.app/v1/guides/getting-started/prerequisites#setting-up-android-development)
 - [jarsigner Tool](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jarsigner.html)
 
 ## ⚠️ Notas de Seguridad
@@ -260,6 +258,6 @@ keytool -list -keystore android-keystore.jks
 ---
 
 **Última actualización:** Febrero 2026
-**Versión de Tauri:** 2.x
+**Stack actual:** Android nativo Kotlin
 **Versión de Android SDK:** 34
 **Java Version:** 17+

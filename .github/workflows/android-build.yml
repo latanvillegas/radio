@@ -27,7 +27,7 @@ jobs:
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Block legacy Tauri references
+      - name: Validate native stack policy
         run: bash scripts/verify-no-tauri.sh
 
       - name: Validate signing secrets

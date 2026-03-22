@@ -2,7 +2,7 @@
 
 ## ℹ️ Descripción
 
-Este documento describe cómo compilar **Radio Satelital** como una aplicación Android nativa 100% Kotlin + Jetpack Compose, **sin dependencias de Tauri, Rust o Node**.
+Este documento describe cómo compilar **Radio Satelital** como una aplicación Android nativa 100% Kotlin + Jetpack Compose, **sin dependencias del stack legado de escritorio**.
 
 El proyecto ahora prioriza desarrollo nativo con:
 - **Lenguaje:** Kotlin 
@@ -370,7 +370,7 @@ Secretos necesarios para release firmado:
 
 ## ⚠️ Notas Importantes
 
-- **Tauri ya no se usa:** Todas las referencias a `tauri`, `cargo`, o `npm run tauri:*` son **obsoletas**.
+- **Stack legado retirado:** Cualquier instrucción antigua de desktop/híbrido es **obsoleta**.
 - **Rama principal:** Desarrollo en `Radio-nativa-klotin`. La rama `main` puede tener código web (PWA).
 - **Base de datos remota:** Supabase es opcional; usa Room para persistencia local pura.
 - **Java 21:** Requerido por AGP 8.11+. No es retrocompatible con Java 17.

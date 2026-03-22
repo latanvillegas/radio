@@ -23,11 +23,11 @@ Nos comprometemos a revisar los reportes legítimos en menos de 48 horas y lanza
 
 ## Baseline de Seguridad (v9.5+)
 
-- CSP activa en WebView/Tauri y páginas públicas/admin.
+- CSP activa en WebView Android nativo y páginas públicas/admin.
 - Referrer-Policy y Permissions-Policy aplicadas en HTML críticos.
 - Mitigación XSS en renderizado dinámico de emisoras (escape HTML).
 - Endurecimiento de enlaces externos con `noopener noreferrer`.
-- Validación de URL también en backend Rust (solo `http/https` y host público).
+- Validación de URL en backend de aplicación (solo `http/https` y host público).
 - Login admin con sesión real de Supabase Auth (sin credenciales demo por defecto).
 
 ## Requisitos Operativos

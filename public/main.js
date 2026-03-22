@@ -763,29 +763,6 @@ const persistGlobalStation = async (station) => {
   return response.ok;
 };
 
-// [DEPRECATED - Android Native Implementation]
-// Tauri invocation is no longer used in the primary Android app.
-// The app now uses Kotlin + Jetpack Compose with native Android services.
-// This function is retained for legacy web app compatibility only.
-const tauriInvoke = () => {
-  // Legacy: Web app fallback (not used in native Android build)
-  return null; // Always return null - Tauri not available in native app
-};
-
-// [DEPRECATED] Native player bridge operations via Tauri.
-// Replaced by: native RadioForegroundService + MainActivity bridge in Kotlin
-const nativePlayerBridge = {
-  available: () => false,  // Disabled - use native bridge instead
-  play: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
-  pause: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
-  resume: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
-  stop: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
-  setVolume: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
-  setEqEnabled: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
-  setEqBandLevel: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
-  resetEq: () => console.warn("nativePlayerBridge deprecated: use native implementation")
-};
-
 const loadCustomStations = async () => {
   // Android native uses Room Database, web app uses localStorage
   return JSON.parse(localStorage.getItem("ultra_custom") || "[]");

@@ -450,10 +450,10 @@ formatting:
 ./build.sh analyze
 
 # O manualmente con Detekt
-detekt --input src-tauri --config detekt.yml
+detekt --input android/app/src/main --config detekt.yml
 
 # Con generación de reportes
-detekt --input src-tauri --report html:build/reports/detekt.html
+detekt --input android/app/src/main --report html:build/reports/detekt.html
 ```
 
 ### Reportes Generados
@@ -486,7 +486,7 @@ Building with gradle: failed
 ```bash
 df -h /workspace
 du -sh /workspace/.gradle/
-du -sh /workspace/src-tauri/build/
+du -sh /workspace/android/app/build/
 ```
 
 **Solución:**

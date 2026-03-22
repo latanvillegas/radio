@@ -168,7 +168,7 @@ make build
 ```bash
 ./build.sh analyze      # Ejecutar Detekt
 make analyze            # O con Makefile
-detekt --input src-tauri # Directo
+detekt --input android/app/src/main # Directo
 ```
 
 #### 4. Limpiar

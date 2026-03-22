@@ -107,7 +107,7 @@ Detekt se ejecuta automáticamente como parte del build (si es requerido).
 detekt
 
 # Análisis con configuración personalizada
-detekt --config detekt.yml --input src-tauri
+detekt --config detekt.yml --input android/app/src/main
 ```
 
 ### Configuración

@@ -232,11 +232,11 @@ run_static_analysis() {
     
     if command -v detekt &> /dev/null; then
         if [ -f "$DETEKT_CONFIG" ]; then
-            detekt --config "$DETEKT_CONFIG" --input "${PROJECT_ROOT}/src-tauri" || {
+            detekt --config "$DETEKT_CONFIG" --input "${PROJECT_ROOT}/android/app/src/main" || {
                 log_warning "Detekt encontró problemas de estilo"
             }
         else
-            detekt --input "${PROJECT_ROOT}/src-tauri" || {
+            detekt --input "${PROJECT_ROOT}/android/app/src/main" || {
                 log_warning "Detekt encontró problemas de estilo"
             }
         fi
@@ -445,7 +445,7 @@ GRADLE_HEAP_MAX="2048m"     # Reducir si hay OOM
 ### Cambiar entrada de Detekt
 ```bash
 # En run_static_analysis(), línea ~150
-detekt --input "src-tauri/src/main"  # Otra ruta
+detekt --input "android/app/src/main"  # Otra ruta
 ```
 
 ### Agregar pre-requisito adicional
