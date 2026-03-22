@@ -19,7 +19,6 @@ import online.latanvillegas.radiosatelital.domain.usecases.SeedDefaultStationsUs
 import online.latanvillegas.radiosatelital.domain.usecases.SyncStationsUseCase
 import online.latanvillegas.radiosatelital.domain.usecases.ToggleFavoriteUseCase
 import online.latanvillegas.radiosatelital.domain.usecases.ValidateStreamUseCase
-import online.latanvillegas.radiosatelital.presentation.viewmodels.RadioViewModelFactory
 
 /**
  * Contenedor simple de dependencias para desacoplar creación de objetos.
@@ -88,14 +87,5 @@ class AppContainer(private val context: Context) {
 
     val seedDefaultStationsUseCase: SeedDefaultStationsUseCase by lazy {
         SeedDefaultStationsUseCase(stationRepository)
-    }
-
-    val radioViewModelFactory: RadioViewModelFactory by lazy {
-        RadioViewModelFactory(
-            observeStationsUseCase = observeStationsUseCase,
-            getFavoriteStationsUseCase = getFavoriteStationsUseCase,
-            searchStationsUseCase = searchStationsUseCase,
-            toggleFavoriteUseCase = toggleFavoriteUseCase
-        )
     }
 }
