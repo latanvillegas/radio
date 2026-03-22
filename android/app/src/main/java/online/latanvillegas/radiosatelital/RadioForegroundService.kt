@@ -3,7 +3,6 @@ package online.latanvillegas.radiosatelital
 import android.app.NotificationManager
 import android.app.Notification
 import android.app.NotificationChannel
-import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -35,6 +34,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSession.ControllerInfo
+import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import androidx.media3.session.MediaSession
@@ -42,11 +42,12 @@ import androidx.media3.ui.PlayerNotificationManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import online.latanvillegas.radiosatelital.observability.PlaybackTelemetry
+import online.latanvillegas.radiosatelital.streaming.PlaybackRecoveryPolicy
 import org.json.JSONArray
 import kotlin.random.Random
 
 @UnstableApi
-class RadioForegroundService : Service() {
+class RadioForegroundService : MediaSessionService() {
   companion object {
     const val actionPlay = "online.latanvillegas.radiosatelital.action.PLAY"
     const val actionPause = "online.latanvillegas.radiosatelital.action.PAUSE"
@@ -441,6 +442,8 @@ class RadioForegroundService : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    super.onStartCommand(intent, flags, startId)
+
     when (intent?.action) {
       actionPlay -> {
         val url = intent.getStringExtra(extraUrl)
@@ -526,8 +529,8 @@ class RadioForegroundService : Service() {
     return START_STICKY
   }
 
-  override fun onBind(intent: Intent?): IBinder? {
-    return null
+  override fun onGetSession(controllerInfo: ControllerInfo): MediaSession {
+    return mediaSession
   }
 
   override fun onDestroy() {
@@ -602,12 +605,12 @@ class RadioForegroundService : Service() {
   private fun scheduleReconnect(error: PlaybackException? = null) {
     if (currentUrl.isBlank()) return
 
-    val maxAttempts = if (isNonRecoverablePlaybackError(error)) 2 else 6
+    val maxAttempts = if (PlaybackRecoveryPolicy.isNonRecoverablePlaybackError(error)) 2 else 6
     if (reconnectAttempt >= maxAttempts) return
 
     cancelReconnect()
-    val reason = reconnectReason(error)
-    val baseDelayMs = computeReconnectDelay(reason, reconnectAttempt)
+    val reason = PlaybackRecoveryPolicy.reconnectReason(error)
+    val baseDelayMs = PlaybackRecoveryPolicy.computeReconnectDelay(reason, reconnectAttempt)
     val jitterMs = Random.nextLong(0L, 750L)
     val delayMs = baseDelayMs + jitterMs
     reconnectAttempt += 1
@@ -653,40 +656,6 @@ class RadioForegroundService : Service() {
     player.setMediaItem(MediaItem.fromUri(currentUrl))
     player.prepare()
     player.playWhenReady = true
-  }
-
-  private fun reconnectReason(error: PlaybackException?): String {
-    val code = error?.errorCode ?: return "unknown"
-    return when (code) {
-      PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-      PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
-      PlaybackException.ERROR_CODE_TIMEOUT -> "network"
-      PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS,
-      PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE -> "server"
-      PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
-      PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED,
-      PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
-      PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED -> "parsing"
-      else -> "other"
-    }
-  }
-
-  private fun computeReconnectDelay(reason: String, attempt: Int): Long {
-    val safeAttempt = attempt.coerceAtLeast(0)
-    return when (reason) {
-      "network" -> (750L * (1 shl safeAttempt)).coerceAtMost(12_000L)
-      "server" -> (1500L * (1 shl safeAttempt)).coerceAtMost(25_000L)
-      "parsing" -> (4000L * (1 shl safeAttempt)).coerceAtMost(45_000L)
-      else -> (1000L * (1 shl safeAttempt)).coerceAtMost(30_000L)
-    }
-  }
-
-  private fun isNonRecoverablePlaybackError(error: PlaybackException?): Boolean {
-    val code = error?.errorCode ?: return false
-    return code == PlaybackException.ERROR_CODE_DECODING_FAILED ||
-      code == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
-      code == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED ||
-      code == PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED
   }
 
   private fun acquireWakeLock() {

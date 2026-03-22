@@ -20,6 +20,12 @@ android/**
 !android/gradle/**
 !android/gradlew
 !android/gradlew.bat
+!android/app/src/test/
+!android/app/src/test/java/
+!android/app/src/test/java/online/
+!android/app/src/test/java/online/latanvillegas/
+!android/app/src/test/java/online/latanvillegas/radiosatelital/
+!android/app/src/test/java/online/latanvillegas/radiosatelital/**
 # Android Signing - NEVER COMMIT THESE FILES
 android-keystore.jks
 android-keystore.txt

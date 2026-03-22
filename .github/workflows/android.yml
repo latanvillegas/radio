@@ -3,10 +3,19 @@ name: Android Build (Kotlin + Jetpack Compose)
 on:
   push:
     branches:
+      - main
       - Radio-nativa-klotin
   pull_request:
     branches:
+      - main
       - Radio-nativa-klotin
+
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
