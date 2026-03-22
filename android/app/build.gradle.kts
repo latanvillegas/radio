@@ -131,7 +131,7 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("com.google.dagger:hilt-android:2.48")
-        implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     kapt("com.google.dagger:hilt-compiler:2.48")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
