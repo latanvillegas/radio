@@ -27,6 +27,10 @@ SIGNING_README.txt
 .android-signing-local.env
 *.jks
 *.keystore
-*.keystore.txt.android-sdk/
+*.keystore.txt
 .android-sdk/
-.android-sdk/
+
+# Gradle caches and local build artifacts
+.gradle/
+android/.gradle/
+**/build/
