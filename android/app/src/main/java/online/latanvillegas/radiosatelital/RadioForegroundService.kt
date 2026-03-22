@@ -27,7 +27,10 @@ import androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT
 import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSession.ControllerInfo
@@ -39,6 +42,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import online.latanvillegas.radiosatelital.observability.PlaybackTelemetry
 import org.json.JSONArray
+import kotlin.random.Random
 
 @UnstableApi
 class RadioForegroundService : Service() {
@@ -88,6 +92,16 @@ class RadioForegroundService : Service() {
     private const val keyVolume = "volume"
     private const val keyEqEnabled = "eq_enabled"
     private const val keyEqBandLevels = "eq_band_levels"
+
+    // Buffer profile tuned for live radio: quick start + resilient rebuffering.
+    private const val minBufferMs = 15_000
+    private const val maxBufferMs = 60_000
+    private const val bufferForPlaybackMs = 900
+    private const val bufferForPlaybackAfterRebufferMs = 2_500
+
+    // Conservative network timeouts to keep streams alive on unstable networks.
+    private const val streamConnectTimeoutMs = 12_000
+    private const val streamReadTimeoutMs = 25_000
   }
 
   private lateinit var player: ExoPlayer
@@ -141,6 +155,14 @@ class RadioForegroundService : Service() {
   private var currentTitle = "Radio Satelital"
   private var currentArtist = "En vivo"
   private var currentQueueHint = ""
+  private val customActionReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+      when (intent?.action) {
+        customActionPrev -> broadcastCommand(commandPrevious)
+        customActionNext -> broadcastCommand(commandNext)
+      }
+    }
+  }
 
   override fun onCreate() {
     super.onCreate()
@@ -156,7 +178,26 @@ class RadioForegroundService : Service() {
 
     registerReceiver(noisyAudioReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
 
-    player = ExoPlayer.Builder(this).build().apply {
+    val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+      .setAllowCrossProtocolRedirects(true)
+      .setConnectTimeoutMs(streamConnectTimeoutMs)
+      .setReadTimeoutMs(streamReadTimeoutMs)
+      .setUserAgent("RadioSatelital/9.5 (Android)")
+
+    val loadControl = DefaultLoadControl.Builder()
+      .setBufferDurationsMs(
+        minBufferMs,
+        maxBufferMs,
+        bufferForPlaybackMs,
+        bufferForPlaybackAfterRebufferMs
+      )
+      .setPrioritizeTimeOverSizeThresholds(true)
+      .build()
+
+    player = ExoPlayer.Builder(this)
+      .setLoadControl(loadControl)
+      .setMediaSourceFactory(DefaultMediaSourceFactory(httpDataSourceFactory))
+      .build().apply {
       setAudioAttributes(
         AudioAttributes.Builder()
           .setUsage(C.USAGE_MEDIA)
@@ -164,6 +205,8 @@ class RadioForegroundService : Service() {
           .build(),
         true
       )
+      setWakeMode(C.WAKE_MODE_NETWORK)
+      setHandleAudioBecomingNoisy(true)
       playWhenReady = true
       volume = currentVolume
     }
@@ -371,14 +414,7 @@ class RadioForegroundService : Service() {
 
     ContextCompat.registerReceiver(
       this,
-      object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-          when (intent?.action) {
-            customActionPrev -> broadcastCommand(commandPrevious)
-            customActionNext -> broadcastCommand(commandNext)
-          }
-        }
-      },
+      customActionReceiver,
       IntentFilter().apply {
         addAction(customActionPrev)
         addAction(customActionNext)
@@ -478,6 +514,7 @@ class RadioForegroundService : Service() {
     releaseWakeLock()
     abandonAudioFocus()
     runCatching { unregisterReceiver(noisyAudioReceiver) }
+    runCatching { unregisterReceiver(customActionReceiver) }
     runCatching { equalizer?.release() }
     equalizer = null
     notificationManager.setPlayer(null)
@@ -545,7 +582,9 @@ class RadioForegroundService : Service() {
     if (reconnectAttempt >= 6) return
 
     cancelReconnect()
-    val delayMs = (2000L * (1 shl reconnectAttempt)).coerceAtMost(60_000L)
+    val baseDelayMs = (1000L * (1 shl reconnectAttempt)).coerceAtMost(30_000L)
+    val jitterMs = Random.nextLong(0L, 750L)
+    val delayMs = baseDelayMs + jitterMs
     reconnectAttempt += 1
     telemetry.trackReconnectAttempt(reconnectAttempt, delayMs)
     broadcastState(stateError, "Reintentando en ${delayMs / 1000}s...")
