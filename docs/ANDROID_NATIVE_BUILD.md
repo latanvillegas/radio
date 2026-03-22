@@ -284,13 +284,55 @@ org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m
 
 ## 📦 Distribución
 
+### Flujo Oficial (Debug -> Release -> Publicación)
+
+1. Build y validación local:
+  ```bash
+  ./scripts/with-java21.sh ./android/gradlew -p android :app:lintDebug :app:testDebugUnitTest :app:assembleDebug --no-daemon
+  ```
+2. Build de release y bundle:
+  ```bash
+  ./scripts/with-java21.sh ./android/gradlew -p android :app:assembleRelease :app:bundleRelease --no-daemon
+  ```
+3. Validación de firma y checksum:
+  ```bash
+  BT_VERSION="$(ls "$ANDROID_SDK_ROOT/build-tools" | sort -V | tail -1)"
+  "$ANDROID_SDK_ROOT/build-tools/$BT_VERSION/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
+  sha256sum android/app/build/outputs/apk/release/*.apk android/app/build/outputs/bundle/release/*.aab
+  ```
+4. Publicación de artefactos en CI:
+  - APK release
+  - AAB release
+  - SHA256SUMS
+
+### Checklist Prepublicación
+
+- Lint en verde
+- Tests unitarios en verde
+- Build debug y release exitosos
+- Firma verificada con apksigner
+- Checksum generado y archivado
+- Notas de versión actualizadas
+- PR aprobado en rama Radio-nativa-klotin
+
+### Rollback Operativo
+
+1. Identifica el último artefacto estable (run anterior en GitHub Actions).
+2. Reetiqueta release estable en GitHub Releases.
+3. Revert de commit en rama de release si fue incidente de código:
+  ```bash
+  git revert <commit>
+  git push origin Radio-nativa-klotin
+  ```
+4. Reejecuta workflow release para publicar binario corregido.
+
 ### Upload a Google Play Store
 
 1. Crear cuenta de desarrollador en [Google Play Console](https://play.google.com/console)
 2. Crear aplicación
 3. Upload del APK firmado (release):
    ```bash
-   npm run android:release   # O compilar manualmente
+  ./scripts/with-java21.sh ./android/gradlew -p android :app:assembleRelease --no-daemon
    ```
 4. Completar metadatos (descripciones, capturas)
 5. Publicar

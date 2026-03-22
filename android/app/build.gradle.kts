@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.gradle.api.JavaVersion
 
 plugins {
     id("com.android.application")
@@ -83,14 +84,18 @@ android {
             )
         }
     }
-        kotlinOptions {
-            jvmTarget = "1.8"
-            freeCompilerArgs = listOf(
-                "-Xno-param-assertions",
-                "-Xno-call-assertions",
-                "-Xno-receiver-assertions"
-            )
-        }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+        freeCompilerArgs = listOf(
+            "-Xno-param-assertions",
+            "-Xno-call-assertions",
+            "-Xno-receiver-assertions"
+        )
+    }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }

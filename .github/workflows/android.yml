@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -28,15 +29,41 @@ jobs:
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Block legacy Tauri references
+        run: bash scripts/verify-no-tauri.sh
+
+      - name: Lint Android app
+        working-directory: ./android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:lintDebug --no-daemon
+
+      - name: Run unit tests
+        working-directory: ./android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest --no-daemon
+
       - name: Build Android Debug APK
         working-directory: ./android
         run: |
           chmod +x gradlew
           ./gradlew :app:assembleDebug --no-daemon --info
 
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-reports-${{ github.run_number }}
+          path: |
+            android/app/build/reports/tests/**
+            android/app/build/reports/lint-results-*.html
+            android/app/build/reports/lint-results-*.xml
+          if-no-files-found: warn
+
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-debug
+          name: android-apk-debug-${{ github.run_number }}
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn

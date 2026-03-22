@@ -49,10 +49,12 @@ help:
 # Build targets
 build:
 	@echo "Building debug APK..."
+	@bash ./scripts/verify-no-tauri.sh
 	@$(BUILD_SCRIPT) build
 
 release:
 	@echo "Building release APK..."
+	@bash ./scripts/verify-no-tauri.sh
 	@if [ -x $(GRADLE_CMD) ]; then \
 		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) assembleRelease --no-daemon; \
 	else \
@@ -70,6 +72,7 @@ analyze:
 
 test:
 	@echo "Running unit tests..."
+	@bash ./scripts/verify-no-tauri.sh
 	@if [ -x $(GRADLE_CMD) ]; then \
 		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) test --no-daemon; \
 	else \
@@ -170,6 +173,7 @@ quick-test: test analyze
 	@echo "Quick test completed!"
 
 check: analyze test lint
+	@bash ./scripts/verify-no-tauri.sh
 	@echo "All checks completed!"
 
 .DEFAULT_GOAL := help

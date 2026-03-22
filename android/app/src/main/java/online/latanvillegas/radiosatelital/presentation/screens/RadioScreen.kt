@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import online.latanvillegas.radiosatelital.domain.models.Station
 import online.latanvillegas.radiosatelital.presentation.viewmodels.RadioViewModel
@@ -105,16 +104,9 @@ private fun SearchBar(
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var textFieldValue by remember {
-        mutableStateOf(TextFieldValue(query))
-    }
-
     OutlinedTextField(
-        value = textFieldValue,
-        onValueChange = {
-            textFieldValue = it
-            onQueryChange(it.text)
-        },
+        value = query,
+        onValueChange = onQueryChange,
         modifier = modifier
             .fillMaxWidth()
             .height(50.dp),
@@ -147,7 +139,10 @@ private fun StationsList(
         }
     } else {
         LazyColumn(modifier = modifier) {
-            items(stations) { station ->
+            items(
+                items = stations,
+                key = { station -> station.id }
+            ) { station ->
                 StationItem(
                     station = station,
                     isCurrentStation = currentStation?.id == station.id,

@@ -36,6 +36,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerNotificationManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import online.latanvillegas.radiosatelital.observability.PlaybackTelemetry
 import org.json.JSONArray
 
 @UnstableApi
@@ -93,6 +94,7 @@ class RadioForegroundService : Service() {
   private lateinit var notificationManager: PlayerNotificationManager
   private lateinit var audioManager: AudioManager
   private lateinit var prefs: android.content.SharedPreferences
+  private lateinit var telemetry: PlaybackTelemetry
 
   private var audioFocusRequest: AudioFocusRequest? = null
   private var wakeLock: PowerManager.WakeLock? = null
@@ -143,6 +145,7 @@ class RadioForegroundService : Service() {
     super.onCreate()
     createNotificationChannel()
     prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+    telemetry = PlaybackTelemetry(this)
     audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
     eqEnabled = prefs.getBoolean(keyEqEnabled, true)
     currentVolume = prefs.getFloat(keyVolume, 1f).coerceIn(0f, 1f)
@@ -167,8 +170,12 @@ class RadioForegroundService : Service() {
     player.addListener(object : Player.Listener {
       override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
-          Player.STATE_BUFFERING -> broadcastState(stateBuffering, "Conectando...")
+          Player.STATE_BUFFERING -> {
+            telemetry.trackBuffering()
+            broadcastState(stateBuffering, "Conectando...")
+          }
           Player.STATE_READY -> {
+            telemetry.trackReady()
             if (player.isPlaying) broadcastState(statePlaying, "En vivo")
             else broadcastState(statePaused, "Pausado")
           }
@@ -191,6 +198,7 @@ class RadioForegroundService : Service() {
       }
 
       override fun onPlayerError(error: PlaybackException) {
+        telemetry.trackError(error.message)
         broadcastState(stateError, error.message ?: "Error de reproduccion")
         scheduleReconnect()
       }
@@ -536,6 +544,7 @@ class RadioForegroundService : Service() {
     cancelReconnect()
     val delayMs = (2000L * (1 shl reconnectAttempt)).coerceAtMost(60_000L)
     reconnectAttempt += 1
+    telemetry.trackReconnectAttempt(reconnectAttempt, delayMs)
     broadcastState(stateError, "Reintentando en ${delayMs / 1000}s...")
 
     reconnectRunnable = Runnable {

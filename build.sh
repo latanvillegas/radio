@@ -65,6 +65,10 @@ log_error() {
 
 check_requirements() {
     log_info "Verificando requisitos del sistema..."
+
+    if [ -f "${PROJECT_ROOT}/scripts/verify-no-tauri.sh" ]; then
+        bash "${PROJECT_ROOT}/scripts/verify-no-tauri.sh"
+    fi
     
     # Verificar Java
     if ! command -v java &> /dev/null; then
