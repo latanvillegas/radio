@@ -9,6 +9,7 @@
 ################################################################################
 
 set -e  # Salir ante cualquier error
+set -o pipefail  # Propagar fallos en pipelines (ej. gradle | tee)
 
 # Colores para output
 RED='\033[0;31m'
@@ -28,7 +29,7 @@ ANDROID_GRADLE_PLUGIN_VERSION="${ANDROID_GRADLE_PLUGIN_VERSION:-8.0.0}"
 # Limites de memoria (optimizados para Codespaces)
 GRADLE_HEAP_MIN="512m"
 GRADLE_HEAP_MAX="3072m"
-GRADLE_METASPACE="512m"
+GRADLE_METASPACE="1024m"
 GRADLE_OFFHEAP="1024m"
 
 # Variables de entorno
@@ -79,21 +80,35 @@ check_requirements() {
     JAVA_VERSION=$(java -version 2>&1 | grep -oP '(?<=").*(?=")' | head -1)
     log_success "Java encontrado: $JAVA_VERSION"
     
+    # Resolver Android SDK real. En este repo puede existir en sdk.dir (local.properties)
+    # aunque ANDROID_HOME apunte a una ruta no instalada dentro del contenedor.
+    if [ ! -d "$ANDROID_HOME" ]; then
+        LOCAL_PROPERTIES_FILE="${ANDROID_PROJECT_DIR}/local.properties"
+        if [ -f "$LOCAL_PROPERTIES_FILE" ]; then
+            LOCAL_SDK_DIR=$(grep -E '^sdk\.dir=' "$LOCAL_PROPERTIES_FILE" | head -1 | cut -d'=' -f2-)
+            if [ -n "$LOCAL_SDK_DIR" ] && [ -d "$LOCAL_SDK_DIR" ]; then
+                export ANDROID_HOME="$LOCAL_SDK_DIR"
+                export ANDROID_SDK_ROOT="$LOCAL_SDK_DIR"
+                export PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${JAVA_HOME}/bin:$PATH"
+                log_warning "ANDROID_HOME original no existe. Se usará sdk.dir de local.properties: $ANDROID_HOME"
+            fi
+        fi
+    fi
+
     # Verificar Android SDK
     if [ ! -d "$ANDROID_HOME" ]; then
         log_error "Android SDK no encontrado en $ANDROID_HOME"
         exit 1
     fi
-    
+
     log_success "Android SDK encontrado en $ANDROID_HOME"
-    
-    # Verificar sdkmanager
+
+    # Verificar sdkmanager (si no está, no bloquea build siempre que Gradle compile)
     if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
-        log_error "sdkmanager no encontrado o no ejecutable"
-        exit 1
+        log_warning "sdkmanager no encontrado o no ejecutable en $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+    else
+        log_success "sdkmanager verificado"
     fi
-    
-    log_success "sdkmanager verificado"
     
     # Verificar Detekt (opcional)
     if command -v detekt &> /dev/null; then

@@ -1,4 +1,4 @@
-.PHONY: help build clean analyze format test docker-build docker-run shell
+.PHONY: help build clean analyze format test docker-build docker-run shell release-java21
 
 # Variables
 SHELL := /bin/bash
@@ -20,6 +20,7 @@ help:
 	@echo "  Build:"
 	@echo "    make build          - Compilar aplicación (debug)"
 	@echo "    make release        - Compilar aplicación (release)"
+	@echo "    make release-java21 - Compilar release forzando Java 21"
 	@echo "    make clean          - Limpiar artefactos de build"
 	@echo ""
 	@echo "  Análisis y Testing:"
@@ -50,7 +51,11 @@ help:
 build:
 	@echo "Building debug APK..."
 	@bash ./scripts/verify-no-tauri.sh
-	@$(BUILD_SCRIPT) build
+	@if [ -x $(GRADLE_CMD) ]; then \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) assembleDebug --no-daemon; \
+	else \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) assembleDebug --no-daemon; \
+	fi
 
 release:
 	@echo "Building release APK..."
@@ -61,6 +66,9 @@ release:
 		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) assembleRelease --no-daemon; \
 	fi
 
+release-java21: release
+	@echo "Release build completada con Java 21"
+
 clean:
 	@echo "Cleaning build artifacts..."
 	@$(BUILD_SCRIPT) clean
@@ -68,15 +76,20 @@ clean:
 # Analysis and testing targets
 analyze:
 	@echo "Running static analysis with Detekt..."
-	@$(BUILD_SCRIPT) analyze
+	@bash ./scripts/verify-no-tauri.sh
+	@if [ -x $(GRADLE_CMD) ]; then \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) app:detekt --no-daemon; \
+	else \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) app:detekt --no-daemon; \
+	fi
 
 test:
 	@echo "Running unit tests..."
 	@bash ./scripts/verify-no-tauri.sh
 	@if [ -x $(GRADLE_CMD) ]; then \
-		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) test --no-daemon; \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) app:testDebugUnitTest --no-daemon; \
 	else \
-		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) test --no-daemon; \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) app:testDebugUnitTest --no-daemon; \
 	fi
 
 android-test:

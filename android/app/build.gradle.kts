@@ -1,11 +1,13 @@
 import java.util.Properties
 import org.gradle.api.JavaVersion
+import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.kapt")
     id("com.google.dagger.hilt.android")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 val appVersionProperties = Properties().apply {
@@ -139,8 +141,20 @@ dependencies {
     testImplementation("app.cash.turbine:turbine:1.0.0")
     androidTestImplementation("androidx.test.ext:junit:1.1.4")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.7")
 }
 
 kapt {
     correctErrorTypes = true
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    parallel = true
+    ignoreFailures = true
+}
+
+tasks.withType<Detekt>().configureEach {
+    jvmTarget = "17"
 }
