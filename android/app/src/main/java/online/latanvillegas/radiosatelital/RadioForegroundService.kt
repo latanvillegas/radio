@@ -16,6 +16,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -102,6 +103,9 @@ class RadioForegroundService : Service() {
     // Conservative network timeouts to keep streams alive on unstable networks.
     private const val streamConnectTimeoutMs = 12_000
     private const val streamReadTimeoutMs = 25_000
+
+    // If a station remains buffering too long, restart playback proactively.
+    private const val bufferingWatchdogTimeoutMs = 18_000L
   }
 
   private lateinit var player: ExoPlayer
@@ -116,8 +120,11 @@ class RadioForegroundService : Service() {
   private var reconnectAttempt = 0
   private val mainHandler = Handler(Looper.getMainLooper())
   private var reconnectRunnable: Runnable? = null
+  private var bufferingWatchdogRunnable: Runnable? = null
   private var currentUrl: String = ""
   private var currentVolume: Float = 1f
+  private var playRequestedAtMs: Long = 0L
+  private var startupLatencyTracked = false
 
   private var equalizer: Equalizer? = null
   private var eqEnabled = true
@@ -217,13 +224,22 @@ class RadioForegroundService : Service() {
           Player.STATE_BUFFERING -> {
             telemetry.trackBuffering()
             broadcastState(stateBuffering, "Conectando...")
+            scheduleBufferingWatchdog()
           }
           Player.STATE_READY -> {
             telemetry.trackReady()
+            cancelBufferingWatchdog()
+            if (!startupLatencyTracked && playRequestedAtMs > 0L) {
+              telemetry.trackStartupLatency(SystemClock.elapsedRealtime() - playRequestedAtMs)
+              startupLatencyTracked = true
+            }
             if (player.isPlaying) broadcastState(statePlaying, "En vivo")
             else broadcastState(statePaused, "Pausado")
           }
-          Player.STATE_ENDED -> broadcastState(stateStopped, "Detenido")
+          Player.STATE_ENDED -> {
+            cancelBufferingWatchdog()
+            broadcastState(stateStopped, "Detenido")
+          }
         }
 
         if (playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING) {
@@ -242,9 +258,10 @@ class RadioForegroundService : Service() {
       }
 
       override fun onPlayerError(error: PlaybackException) {
+        cancelBufferingWatchdog()
         telemetry.trackError(error.message)
         broadcastState(stateError, error.message ?: "Error de reproduccion")
-        scheduleReconnect()
+        scheduleReconnect(error)
       }
 
       override fun onAudioSessionIdChanged(audioSessionId: Int) {
@@ -438,7 +455,10 @@ class RadioForegroundService : Service() {
             return START_STICKY
           }
 
+          playRequestedAtMs = SystemClock.elapsedRealtime()
+          startupLatencyTracked = false
           cancelReconnect()
+          cancelBufferingWatchdog()
           reconnectAttempt = 0
           currentUrl = url
           currentTitle = if (title.isNullOrBlank()) "Radio Satelital" else title
@@ -463,6 +483,7 @@ class RadioForegroundService : Service() {
 
       actionStop -> {
         cancelReconnect()
+        cancelBufferingWatchdog()
         abandonAudioFocus()
         player.stop()
         currentUrl = ""
@@ -511,6 +532,7 @@ class RadioForegroundService : Service() {
 
   override fun onDestroy() {
     cancelReconnect()
+    cancelBufferingWatchdog()
     releaseWakeLock()
     abandonAudioFocus()
     runCatching { unregisterReceiver(noisyAudioReceiver) }
@@ -577,16 +599,19 @@ class RadioForegroundService : Service() {
     }
   }
 
-  private fun scheduleReconnect() {
+  private fun scheduleReconnect(error: PlaybackException? = null) {
     if (currentUrl.isBlank()) return
-    if (reconnectAttempt >= 6) return
+
+    val maxAttempts = if (isNonRecoverablePlaybackError(error)) 2 else 6
+    if (reconnectAttempt >= maxAttempts) return
 
     cancelReconnect()
-    val baseDelayMs = (1000L * (1 shl reconnectAttempt)).coerceAtMost(30_000L)
+    val reason = reconnectReason(error)
+    val baseDelayMs = computeReconnectDelay(reason, reconnectAttempt)
     val jitterMs = Random.nextLong(0L, 750L)
     val delayMs = baseDelayMs + jitterMs
     reconnectAttempt += 1
-    telemetry.trackReconnectAttempt(reconnectAttempt, delayMs)
+    telemetry.trackReconnectAttempt(reconnectAttempt, delayMs, reason)
     broadcastState(stateError, "Reintentando en ${delayMs / 1000}s...")
 
     reconnectRunnable = Runnable {
@@ -602,6 +627,66 @@ class RadioForegroundService : Service() {
   private fun cancelReconnect() {
     reconnectRunnable?.let { mainHandler.removeCallbacks(it) }
     reconnectRunnable = null
+  }
+
+  private fun scheduleBufferingWatchdog() {
+    cancelBufferingWatchdog()
+    bufferingWatchdogRunnable = Runnable {
+      if (player.playbackState == Player.STATE_BUFFERING && currentUrl.isNotBlank()) {
+        telemetry.trackStallRescue(bufferingWatchdogTimeoutMs)
+        broadcastState(stateError, "Reconectando por buffering prolongado...")
+        reconnectAttempt = 0
+        restartCurrentStream()
+      }
+    }.also { mainHandler.postDelayed(it, bufferingWatchdogTimeoutMs) }
+  }
+
+  private fun cancelBufferingWatchdog() {
+    bufferingWatchdogRunnable?.let { mainHandler.removeCallbacks(it) }
+    bufferingWatchdogRunnable = null
+  }
+
+  private fun restartCurrentStream() {
+    if (currentUrl.isBlank()) return
+    player.stop()
+    player.clearMediaItems()
+    player.setMediaItem(MediaItem.fromUri(currentUrl))
+    player.prepare()
+    player.playWhenReady = true
+  }
+
+  private fun reconnectReason(error: PlaybackException?): String {
+    val code = error?.errorCode ?: return "unknown"
+    return when (code) {
+      PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+      PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+      PlaybackException.ERROR_CODE_TIMEOUT -> "network"
+      PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS,
+      PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE -> "server"
+      PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
+      PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED,
+      PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
+      PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED -> "parsing"
+      else -> "other"
+    }
+  }
+
+  private fun computeReconnectDelay(reason: String, attempt: Int): Long {
+    val safeAttempt = attempt.coerceAtLeast(0)
+    return when (reason) {
+      "network" -> (750L * (1 shl safeAttempt)).coerceAtMost(12_000L)
+      "server" -> (1500L * (1 shl safeAttempt)).coerceAtMost(25_000L)
+      "parsing" -> (4000L * (1 shl safeAttempt)).coerceAtMost(45_000L)
+      else -> (1000L * (1 shl safeAttempt)).coerceAtMost(30_000L)
+    }
+  }
+
+  private fun isNonRecoverablePlaybackError(error: PlaybackException?): Boolean {
+    val code = error?.errorCode ?: return false
+    return code == PlaybackException.ERROR_CODE_DECODING_FAILED ||
+      code == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
+      code == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED ||
+      code == PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED
   }
 
   private fun acquireWakeLock() {

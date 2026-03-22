@@ -13,6 +13,10 @@ class PlaybackTelemetry(context: Context) {
         private const val keyReconnectAttempts = "reconnect_attempts"
         private const val keyReadyEvents = "ready_events"
         private const val keyLastError = "last_error"
+        private const val keyStartupLatencyMs = "startup_latency_ms"
+        private const val keyStartupSamples = "startup_samples"
+        private const val keyStallRescues = "stall_rescues"
+        private const val keyLastReconnectReason = "last_reconnect_reason"
     }
 
     private val prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
@@ -31,9 +35,26 @@ class PlaybackTelemetry(context: Context) {
         Log.e(tag, "Playback error: ${message ?: "unknown"}")
     }
 
-    fun trackReconnectAttempt(attempt: Int, delayMs: Long) {
+    fun trackReconnectAttempt(attempt: Int, delayMs: Long, reason: String = "unknown") {
         increment(keyReconnectAttempts)
-        Log.w(tag, "Reconnect attempt=$attempt delayMs=$delayMs")
+        prefs.edit().putString(keyLastReconnectReason, reason).apply()
+        Log.w(tag, "Reconnect attempt=$attempt delayMs=$delayMs reason=$reason")
+    }
+
+    fun trackStartupLatency(latencyMs: Long) {
+        val sanitized = latencyMs.coerceAtLeast(0L)
+        val total = prefs.getLong(keyStartupLatencyMs, 0L) + sanitized
+        val samples = prefs.getInt(keyStartupSamples, 0) + 1
+        prefs.edit()
+            .putLong(keyStartupLatencyMs, total)
+            .putInt(keyStartupSamples, samples)
+            .apply()
+        Log.i(tag, "Startup latency=${sanitized}ms")
+    }
+
+    fun trackStallRescue(timeoutMs: Long) {
+        increment(keyStallRescues)
+        Log.w(tag, "Stall rescue triggered after ${timeoutMs}ms")
     }
 
     fun snapshot(): Map<String, Any> {
@@ -42,8 +63,17 @@ class PlaybackTelemetry(context: Context) {
             keyReadyEvents to prefs.getInt(keyReadyEvents, 0),
             keyPlaybackErrors to prefs.getInt(keyPlaybackErrors, 0),
             keyReconnectAttempts to prefs.getInt(keyReconnectAttempts, 0),
-            keyLastError to (prefs.getString(keyLastError, "none") ?: "none")
+            keyLastError to (prefs.getString(keyLastError, "none") ?: "none"),
+            keyStallRescues to prefs.getInt(keyStallRescues, 0),
+            keyLastReconnectReason to (prefs.getString(keyLastReconnectReason, "none") ?: "none"),
+            "startup_latency_avg_ms" to computeAvgStartupLatency()
         )
+    }
+
+    private fun computeAvgStartupLatency(): Long {
+        val samples = prefs.getInt(keyStartupSamples, 0)
+        if (samples <= 0) return 0L
+        return prefs.getLong(keyStartupLatencyMs, 0L) / samples
     }
 
     private fun increment(key: String) {
