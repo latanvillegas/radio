@@ -72,7 +72,7 @@ serde_json = "1"
 
 ## ⚠️ ESTADO ACTUAL - LO QUE FALTA
 
-### Directorio `src-tauri/gen/android/` - ⚠️ NO EXISTE
+### Directorio `android/` - ⚠️ NO EXISTE
 
 **¿Qué es?**
 - Estructura generada por Tauri que contiene el proyecto Android completo
@@ -119,7 +119,7 @@ cargo tauri android init
 | icon-512.png | ✅ OK | Icono 512x512 existe |
 | src-tauri/src | ✅ OK | Código Rust preparado |
 | docs/ | ✅ OK | Documentación actualizada |
-| src-tauri/gen/android/ | ⚠️ PENDIENTE | Requiere `tauri android init` |
+| android/ | ⚠️ PENDIENTE | Requiere `tauri android init` |
 | sw.js | ⚠️ OK | PWA Service Worker (compatible) |
 | manifest.json | ⚠️ OK | PWA Manifest (compatible) |
 

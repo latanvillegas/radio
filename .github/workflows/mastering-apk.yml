@@ -101,7 +101,7 @@ jobs:
       # ── [9] LOCALIZAR APK ────────────────────────────────────────────
       - name: Locate unsigned APK
         run: |
-          APK_UNSIGNED=$(find src-tauri/gen/android/app/build/outputs/apk/release \
+          APK_UNSIGNED=$(find android/app/build/outputs/apk/release \
             -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK_UNSIGNED" ]; then
             echo "::error::No se encontró ningún APK en el directorio de salida."

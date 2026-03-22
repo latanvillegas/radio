@@ -3,7 +3,9 @@
 # Variables
 SHELL := /bin/bash
 BUILD_SCRIPT := ./build.sh
-GRADLE_CMD := ./gradlew
+ANDROID_PROJECT_DIR := android
+GRADLE_CMD := ./android/gradlew
+JAVA21_WRAPPER := ./scripts/with-java21.sh
 DETEKT := detekt
 DOCKER_IMAGE := radio-satelital-android:latest
 DOCKER_CONTAINER := radio-satelital-dev
@@ -52,9 +54,9 @@ build:
 release:
 	@echo "Building release APK..."
 	@if [ -x $(GRADLE_CMD) ]; then \
-		$(GRADLE_CMD) assembleRelease --no-daemon; \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) assembleRelease --no-daemon; \
 	else \
-		gradle assembleRelease --no-daemon; \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) assembleRelease --no-daemon; \
 	fi
 
 clean:
@@ -69,24 +71,24 @@ analyze:
 test:
 	@echo "Running unit tests..."
 	@if [ -x $(GRADLE_CMD) ]; then \
-		$(GRADLE_CMD) test --no-daemon; \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) test --no-daemon; \
 	else \
-		gradle test --no-daemon; \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) test --no-daemon; \
 	fi
 
 android-test:
 	@echo "Running Android instrumented tests..."
 	@if [ -x $(GRADLE_CMD) ]; then \
-		$(GRADLE_CMD) connectedAndroidTest --no-daemon; \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) connectedAndroidTest --no-daemon; \
 	else \
-		gradle connectedAndroidTest --no-daemon; \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) connectedAndroidTest --no-daemon; \
 	fi
 
 # Code quality targets
 format:
 	@echo "Formatting Kotlin code..."
 	@if command -v ktfmt &> /dev/null; then \
-		ktfmt --mode file src-tauri; \
+		ktfmt --mode file android/app/src/main/java; \
 	else \
 		echo "ktfmt not installed. Skipping formatting."; \
 	fi
@@ -94,9 +96,9 @@ format:
 lint:
 	@echo "Running linting checks..."
 	@if [ -x $(GRADLE_CMD) ]; then \
-		$(GRADLE_CMD) lint --no-daemon; \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) lint --no-daemon; \
 	else \
-		gradle lint --no-daemon; \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) lint --no-daemon; \
 	fi
 
 # Docker targets
@@ -132,9 +134,9 @@ verify-env:
 	@echo "Gradle:"
 	@if [ -x $(GRADLE_CMD) ]; then \
 		echo "Using local Gradle wrapper"; \
-		$(GRADLE_CMD) --version | head -1; \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) --version | head -1; \
 	else \
-		gradle --version | head -1; \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) --version | head -1; \
 	fi
 	@echo ""
 	@echo "Detekt:"
@@ -151,9 +153,9 @@ verify-env:
 daemon-stop:
 	@echo "Stopping Gradle daemon..."
 	@if [ -x $(GRADLE_CMD) ]; then \
-		$(GRADLE_CMD) --stop; \
+		$(JAVA21_WRAPPER) $(GRADLE_CMD) -p $(ANDROID_PROJECT_DIR) --stop; \
 	else \
-		gradle --stop; \
+		$(JAVA21_WRAPPER) gradle -p $(ANDROID_PROJECT_DIR) --stop; \
 	fi
 	@echo "Done"
 

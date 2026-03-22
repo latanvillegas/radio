@@ -1,6 +1,17 @@
-# Guía de Compilación de Android - Tauri v2
+# ⚠️ Guía de Compilación de Android - Tauri v2 [DEPRECATED]
 
-Esta guía te ayudará a compilar Radio Satelital como aplicación nativa Android usando Tauri v2.
+**⛔ ATENCIÓN: Esta guía es OBSOLETA desde Marzo 22, 2026**
+
+Radio Satelital ha migrado completamente a **Kotlin + Jetpack Compose** (100% Android nativo).
+Tauri, Rust y Node.js CLI **ya no se utilizan**.
+
+**Para compilar ahora, consulta:** [`docs/ANDROID_NATIVE_BUILD.md`](./ANDROID_NATIVE_BUILD.md)
+
+---
+
+### Información Histórica (Archivada)
+
+Esta guía describe el proceso ANTERIOR que usaba Tauri v2. Se mantiene solo como referencia histórica.
 
 ## 🔍 Estado Actual de la Configuración
 
@@ -67,7 +78,7 @@ cargo install tauri-cli
 cargo tauri android init
 ```
 
-Esto creará la estructura de Android en `src-tauri/gen/android/`.
+Esto creará la estructura de Android en `android/`.
 
 ## 📦 Compilación para Android
 
@@ -85,7 +96,7 @@ Conecta un dispositivo Android o inicia un emulador, y la app se instalará en t
 cargo tauri android build --debug
 ```
 
-APK generado: `src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk`
+APK generado: `android/app/build/outputs/apk/universal/debug/app-universal-debug.apk`
 
 ### Compilación de APK Release
 
@@ -94,7 +105,7 @@ APK generado: `src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-u
 cargo tauri android build --release
 ```
 
-APKs generados en: `src-tauri/gen/android/app/build/outputs/apk/release/`
+APKs generados en: `android/app/build/outputs/apk/release/`
 
 ## 🔐 Firmar APK Release (Opcional)
 
@@ -146,7 +157,7 @@ Después de ejecutar `tauri android init`, se generan estos APKs:
 
 ```bash
 # Verificar que todo esté configurado correctamente
-ls -la src-tauri/gen/android/  # Debe existir
+ls -la android/  # Debe existir
 
 # Ver la configuración
 cat src-tauri/tauri.conf.json | grep android
@@ -220,7 +231,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: android-apk
-          path: src-tauri/gen/android/app/build/outputs/apk/release/
+          path: android/app/build/outputs/apk/release/
 ```
 
 ## 📱 Distribución

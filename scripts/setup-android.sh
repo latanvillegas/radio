@@ -1,73 +1,62 @@
 #!/bin/bash
 
-# Script de configuración completa para Tauri + Android
-# Este script prepara el proyecto para compilación de Android
+# Script de configuración completa para Android nativo (Kotlin + Jetpack Compose)
+# Este script prepara el proyecto para compilación Android con Gradle.
 
 set -e  # Salir si hay error
 
-echo "🚀 Iniciando configuración de Tauri Android..."
+ANDROID_PROJECT_DIR="android"
+
+echo "🚀 Iniciando configuración Android nativa..."
 
 # 1. Verificar dependencias
 echo "📋 Verificando dependencias..."
 
-if ! command -v cargo &> /dev/null; then
-    echo "❌ Rust/Cargo no está instalado"
-    echo "📖 Instala Rust desde: https://rustup.rs/"
+if ! command -v java &> /dev/null; then
+    echo "❌ Java no está instalado"
     exit 1
 fi
 
-if ! command -v npm &> /dev/null; then
-    echo "❌ Node.js/npm no está instalado"
+if ! command -v gradle &> /dev/null && [ ! -x "${ANDROID_PROJECT_DIR}/gradlew" ]; then
+    echo "❌ Gradle no está disponible (ni wrapper ni gradle global)"
     exit 1
 fi
 
-# 2. Instalar dependencias Node
-echo "📦 Instalando dependencias Node..."
-npm install
+# 2. Verificar Android SDK
+if [ -z "${ANDROID_HOME}" ] && [ -z "${ANDROID_SDK_ROOT}" ]; then
+    echo "⚠️  ANDROID_HOME/ANDROID_SDK_ROOT no está configurado."
+    echo "    Se recomienda exportar ANDROID_HOME=/opt/android"
+fi
 
-# 3. Instalar Tauri CLI globally (opcional pero recomendado)
-echo "📦 Instalando Tauri CLI..."
-npm install -g @tauri-apps/cli@latest
+# 3. Verificar módulo Android
+if [ ! -d "${ANDROID_PROJECT_DIR}" ]; then
+    echo "❌ No se encontró el proyecto Android en ${ANDROID_PROJECT_DIR}"
+    exit 1
+fi
 
-# 4. Crear directorio assets si no existe
-echo "📁 Creando directorio de assets..."
-mkdir -p src-tauri/gen/android/app/src/main/assets
-
-# 5. Copiar archivos frontend al directorio de assets correctamente
-echo "📋 Preparando archivos frontend..."
-# Los archivos HTML/CSS/JS se sirven desde ../  según la configuración
-# Tauri copia automáticamente desde frontendDist
-
-# 6. Inicializar Android (requiere Android SDK)
-echo "🤖 Iniciando configuración de Android..."
-echo "⚠️  Esto requiere Android SDK instalado"
-echo ""
-echo "Si no tienes Android SDK instalado, ejecuta:"
-echo "  cargo install tauri-cli"
-echo "  cargo tauri android init"
-echo ""
-echo "O instala Android Studio desde: https://developer.android.com/studio"
-echo ""
-
-# 7. Mostrar estado de la configuración
+# 4. Mostrar estado de la configuración
 echo "✅ Verificación de configuración:"
 echo ""
 echo "📋 Archivos verificados:"
-[ -f "src-tauri/tauri.conf.json" ] && echo "  ✅ tauri.conf.json" || echo "  ❌ tauri.conf.json (falta)"
-[ -f "src-tauri/Cargo.toml" ] && echo "  ✅ Cargo.toml" || echo "  ❌ Cargo.toml (falta)"
-[ -f "package.json" ] && echo "  ✅ package.json" || echo "  ❌ package.json (falta)"
-[ -f "index.html" ] && echo "  ✅ index.html (frontend)" || echo "  ❌ index.html (falta)"
-[ -f "icon-192.png" ] && echo "  ✅ icon-192.png" || echo "  ❌ icon-192.png (falta)"
+[ -f "${ANDROID_PROJECT_DIR}/settings.gradle" ] && echo "  ✅ settings.gradle" || echo "  ❌ settings.gradle (falta)"
+[ -f "${ANDROID_PROJECT_DIR}/app/build.gradle.kts" ] && echo "  ✅ app/build.gradle.kts" || echo "  ❌ app/build.gradle.kts (falta)"
+[ -f "${ANDROID_PROJECT_DIR}/gradlew" ] && echo "  ✅ gradlew" || echo "  ⚠️ gradlew (falta, se usará gradle global)"
+[ -f "${ANDROID_PROJECT_DIR}/app/src/main/AndroidManifest.xml" ] && echo "  ✅ AndroidManifest.xml" || echo "  ❌ AndroidManifest.xml (falta)"
 
 echo ""
-echo "📦 Dependencias Rust:"
-grep "version" src-tauri/Cargo.toml | head -3
+echo "📦 Java/Gradle:"
+java -version 2>&1 | head -1
+if [ -x "${ANDROID_PROJECT_DIR}/gradlew" ]; then
+    "${ANDROID_PROJECT_DIR}/gradlew" -p "${ANDROID_PROJECT_DIR}" --version | head -3
+else
+    gradle --version | head -3
+fi
 
 echo ""
 echo "🎯 Próximos pasos:"
-echo "1. Instala Android SDK/NDK (si no lo tienes)"
-echo "2. Ejecuta: cargo tauri android init"
-echo "3. Ejecuta: cargo tauri android dev"
-echo "4. O compila con: cargo tauri android build"
+echo "1. Verifica Android SDK en ANDROID_HOME/ANDROID_SDK_ROOT"
+echo "2. Compila debug con: ./build.sh build"
+echo "3. O compila release con: make release"
+echo "4. Ejecuta tests con: make test"
 echo ""
 echo "✨ Configuración completada!"

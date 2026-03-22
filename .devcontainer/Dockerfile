@@ -18,8 +18,6 @@ RUN apt-get update && apt-get install -y \
     openjdk-17-jdk-headless \
     openjdk-17-jre-headless \
     gradle \
-    nodejs \
-    npm \
     python3 \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
@@ -55,9 +53,6 @@ RUN curl -sSL https://github.com/detekt/detekt/releases/download/v1.23.1/detekt-
     echo '#!/bin/bash' > /usr/local/bin/detekt && \
     echo 'java -jar /usr/local/bin/detekt.jar "$@"' >> /usr/local/bin/detekt && \
     chmod +x /usr/local/bin/detekt
-
-# Instalar herramientas adicionales útiles
-RUN npm install -g @angular/cli @vue/cli create-react-app
 
 # Establecer permisos correctos
 RUN chmod -R 755 ${ANDROID_HOME}

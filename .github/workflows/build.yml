@@ -84,10 +84,10 @@ jobs:
         with:
           name: android-apk
           path: |
-            src-tauri/gen/android/app/build/outputs/apk/arm64-v8a/release/*.apk
-            src-tauri/gen/android/app/build/outputs/apk/armeabi-v7a/release/*.apk
-            src-tauri/gen/android/app/build/outputs/apk/x86/release/*.apk
-            src-tauri/gen/android/app/build/outputs/apk/x86_64/release/*.apk
+            android/app/build/outputs/apk/arm64-v8a/release/*.apk
+            android/app/build/outputs/apk/armeabi-v7a/release/*.apk
+            android/app/build/outputs/apk/x86/release/*.apk
+            android/app/build/outputs/apk/x86_64/release/*.apk
           if-no-files-found: warn
 
       - name: Create Release
@@ -95,7 +95,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            src-tauri/gen/android/app/build/outputs/apk/arm64-v8a/release/*.apk
-            src-tauri/gen/android/app/build/outputs/apk/armeabi-v7a/release/*.apk
+            android/app/build/outputs/apk/arm64-v8a/release/*.apk
+            android/app/build/outputs/apk/armeabi-v7a/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -4,16 +4,10 @@
   "version": "9.5.0",
   "type": "module",
   "scripts": {
-    "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "tauri:android": "bash scripts/with-java21.sh tauri android dev",
-    "tauri:android:build": "bash scripts/with-java21.sh tauri android build"
+    "android:build": "bash scripts/with-java21.sh ./android/gradlew -p android assembleDebug",
+    "android:release": "bash scripts/with-java21.sh ./android/gradlew -p android assembleRelease",
+    "android:test": "bash scripts/with-java21.sh ./android/gradlew -p android test"
   },
-  "dependencies": {
-    "@tauri-apps/api": "^2.0.0"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^2"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }

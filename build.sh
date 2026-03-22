@@ -19,8 +19,10 @@ NC='\033[0m' # No Color
 
 # Variables de configuración
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ANDROID_PROJECT_DIR="${PROJECT_ROOT}/android"
 GRADLE_HOME="${GRADLE_HOME:-$PROJECT_ROOT/gradle}"
-GRADLE_WRAPPER="${PROJECT_ROOT}/gradlew"
+GRADLE_WRAPPER="${ANDROID_PROJECT_DIR}/gradlew"
+JAVA21_WRAPPER="${PROJECT_ROOT}/scripts/with-java21.sh"
 ANDROID_GRADLE_PLUGIN_VERSION="${ANDROID_GRADLE_PLUGIN_VERSION:-8.0.0}"
 
 # Limites de memoria (optimizados para Codespaces)
@@ -139,11 +141,11 @@ run_static_analysis() {
     
     if command -v detekt &> /dev/null; then
         if [ -f "$DETEKT_CONFIG" ]; then
-            detekt --config "$DETEKT_CONFIG" --input "${PROJECT_ROOT}/src-tauri" || {
+            detekt --config "$DETEKT_CONFIG" --input "${ANDROID_PROJECT_DIR}/app/src/main/java" || {
                 log_warning "Detekt encontró problemas de estilo"
             }
         else
-            detekt --input "${PROJECT_ROOT}/src-tauri" || {
+            detekt --input "${ANDROID_PROJECT_DIR}/app/src/main/java" || {
                 log_warning "Detekt encontró problemas de estilo"
             }
         fi
@@ -155,6 +157,11 @@ run_static_analysis() {
 
 build_android() {
     log_info "Iniciando compilación de Android..."
+
+    if [ ! -d "$ANDROID_PROJECT_DIR" ]; then
+        log_error "Proyecto Android no encontrado en: $ANDROID_PROJECT_DIR"
+        exit 1
+    fi
     
     if [ ! -x "$GRADLE_WRAPPER" ]; then
         log_warning "gradlew no encontrado, usando gradle global"
@@ -163,10 +170,10 @@ build_android() {
         BUILD_CMD="$GRADLE_WRAPPER"
     fi
     
-    log_info "Ejecutando: $BUILD_CMD assembleDebug"
+    log_info "Ejecutando: $BUILD_CMD -p $ANDROID_PROJECT_DIR assembleDebug"
     log_info "Configuración de memor ia: Xmx=${GRADLE_HEAP_MAX}, Metaspace=${GRADLE_METASPACE}"
     
-    if $BUILD_CMD assembleDebug \
+    if "$JAVA21_WRAPPER" $BUILD_CMD -p "$ANDROID_PROJECT_DIR" assembleDebug \
         -x test \
         --no-daemon \
         --info \
@@ -249,9 +256,9 @@ main() {
         clean)
             log_info "Limpiando directorios de build..."
             if [ -x "$GRADLE_WRAPPER" ]; then
-                "$GRADLE_WRAPPER" clean --no-daemon
+                "$JAVA21_WRAPPER" "$GRADLE_WRAPPER" -p "$ANDROID_PROJECT_DIR" clean --no-daemon
             else
-                gradle clean --no-daemon
+                "$JAVA21_WRAPPER" gradle -p "$ANDROID_PROJECT_DIR" clean --no-daemon
             fi
             log_success "Build limpiado"
             ;;

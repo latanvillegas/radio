@@ -1,4 +1,15 @@
-# Android Fase 2 - Checklist de Build y Verificacion
+# ⚠️ Android Fase 2 - Checklist de Build y Verificacion [DEPRECATED]
+
+**⚠️ ATENCIÓN: Esta guía es OBSOLETA desde Marzo 22, 2026**
+
+Radio Satelital ha completado la migración a **Kotlin + Jetpack Compose** 100% nativo.
+Esta checklist describe un proceso anterior que ya no es relevante.
+
+**Para la compilación actual, consulta:** [`docs/ANDROID_NATIVE_BUILD.md`](./ANDROID_NATIVE_BUILD.md)
+
+---
+
+## Información Histórica
 
 Esta guia deja un flujo estable para compilar y probar la reproduccion nativa en segundo plano (MediaSession + ExoPlayer).
 
@@ -62,7 +73,7 @@ npm run tauri android init
 
 Importante para este repositorio:
 
-- Se versiona solo un subconjunto minimo de `src-tauri/gen/android` para mantener PR limpio.
+- Se versiona solo un subconjunto minimo de `android` para mantener PR limpio.
 - Si clonas desde cero, ejecuta `npm run tauri android init` antes de compilar para regenerar el arbol base.
 - Luego aplica/usa los archivos versionados de Fase 2 (Activity, Service, Manifest y build.gradle.kts).
 
@@ -77,7 +88,7 @@ npm run tauri android build -- --debug
 Con dispositivo/emulador conectado:
 
 ```bash
-adb install -r src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
+adb install -r android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
 ```
 
 ## 8) Pruebas funcionales de Fase 2
@@ -102,8 +113,8 @@ adb logcat | grep -i "RadioForegroundService\|ExoPlayer\|MediaSession"
 
 ## 10) Archivos clave de esta fase
 
-- src-tauri/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/RadioForegroundService.kt
-- src-tauri/gen/android/app/src/main/java/online/latanvillegas/radiosatelital/MainActivity.kt
-- src-tauri/gen/android/app/src/main/AndroidManifest.xml
-- src-tauri/gen/android/app/build.gradle.kts
+- android/app/src/main/java/online/latanvillegas/radiosatelital/RadioForegroundService.kt
+- android/app/src/main/java/online/latanvillegas/radiosatelital/MainActivity.kt
+- android/app/src/main/AndroidManifest.xml
+- android/app/build.gradle.kts
 - public/main.js

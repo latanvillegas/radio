@@ -1,8 +1,17 @@
-# Configuración de Android para Tauri v2.0
+# ⚠️ Configuración de Android para Tauri v2.0 [DEPRECATED]
 
-## Estado Actual
-✅ **tauri.conf.json** actualizado al esquema v2.0
-✅ **package.json** actualizado con dependencias de Tauri v2.0
+**⚠️ ATENCIÓN: Esta guía es OBSOLETA desde Marzo 22, 2026**
+
+Radio Satelital ha migrado completamente a **Kotlin + Jetpack Compose** (100% Android nativo).
+Tauri ya no se utiliza.
+
+**Para información actualizada, consulta:** [`docs/ANDROID_NATIVE_BUILD.md`](./ANDROID_NATIVE_BUILD.md)
+
+---
+
+## Estado Anterior
+✅ **tauri.conf.json** - Ahora obsoleto (removido)
+✅ **package.json** - Mirado Tauri v2.0 dependencias
 ✅ **Cargo.toml** ya está configurado para Tauri v2
 
 ## Comandos de Inicialización
@@ -18,14 +27,14 @@ npm run tauri android init
 ```
 
 Este comando:
-- Crea la estructura de proyecto Android en `src-tauri/gen/android/`
+- Crea la estructura de proyecto Android en `android/`
 - Genera el `AndroidManifest.xml` base
 - Configura Gradle con las versiones especificadas en `tauri.conf.json`
 
 ### 3. Agregar Permisos de Android
 
 Después de ejecutar `tauri android init`, edita el archivo:
-`src-tauri/gen/android/app/src/main/AndroidManifest.xml`
+`android/app/src/main/AndroidManifest.xml`
 
 Agrega estos permisos dentro de la etiqueta `<manifest>`:
 

@@ -27,47 +27,36 @@ fi
 echo "[1/5] Actualizando índices de paquetes..."
 sudo apt update
 
-echo "[2/5] Instalando dependencias del sistema para Tauri..."
+echo "[2/5] Instalando dependencias del sistema para Android nativo..."
 sudo apt install -y \
-  libwebkit2gtk-4.1-dev \
-  libgtk-3-dev \
-  libayatana-appindicator3-dev \
-  librsvg2-dev \
-  patchelf \
   build-essential \
+  openjdk-17-jdk \
+  unzip \
   curl \
   wget \
-  file \
-  libssl-dev \
-  pkg-config
+  zip
 
-echo "[3/5] Verificando Rust..."
-if ! command -v rustc >/dev/null 2>&1; then
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-fi
-
-export PATH="${HOME}/.cargo/bin:${PATH}"
-
-if ! command -v rustc >/dev/null 2>&1; then
-  echo "Rust no quedó disponible en PATH. Abre una nueva terminal e inténtalo de nuevo."
-  exit 1
-fi
-
-echo "[4/5] Verificando Node.js y npm..."
+echo "[3/5] Verificando Node.js y npm..."
 if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
   echo "Node.js/npm no detectados. Instalando desde repositorio de Ubuntu..."
   sudo apt install -y nodejs npm
 fi
 
-echo "[5/5] Instalando dependencias del proyecto..."
+echo "[4/5] Instalando dependencias del proyecto..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 cd "${PROJECT_ROOT}"
 npm install
 
+echo "[5/5] Verificando wrapper de Gradle Android..."
+if [[ ! -x "${PROJECT_ROOT}/android/gradlew" ]]; then
+  echo "No se encontró gradlew en android."
+  exit 1
+fi
+
 echo ""
 echo "✅ Entorno nativo listo."
 echo "Siguiente paso:"
-echo "  npm run tauri:dev"
-echo "  npm run tauri:build"
+echo "  ./scripts/with-java21.sh ./android/gradlew -p android :app:assembleDebug"
+echo "  make release"

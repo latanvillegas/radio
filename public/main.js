@@ -763,56 +763,43 @@ const persistGlobalStation = async (station) => {
   return response.ok;
 };
 
+// [DEPRECATED - Android Native Implementation]
+// Tauri invocation is no longer used in the primary Android app.
+// The app now uses Kotlin + Jetpack Compose with native Android services.
+// This function is retained for legacy web app compatibility only.
 const tauriInvoke = () => {
-  try {
-    return window.__TAURI__?.core?.invoke || null;
-  } catch (_) {
-    return null;
-  }
+  // Legacy: Web app fallback (not used in native Android build)
+  return null; // Always return null - Tauri not available in native app
+};
+
+// [DEPRECATED] Native player bridge operations via Tauri.
+// Replaced by: native RadioForegroundService + MainActivity bridge in Kotlin
+const nativePlayerBridge = {
+  available: () => false,  // Disabled - use native bridge instead
+  play: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
+  pause: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
+  resume: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
+  stop: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
+  setVolume: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
+  setEqEnabled: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
+  setEqBandLevel: () => console.warn("nativePlayerBridge deprecated: use native implementation"),
+  resetEq: () => console.warn("nativePlayerBridge deprecated: use native implementation")
 };
 
 const loadCustomStations = async () => {
-  const invoke = tauriInvoke();
-  if (invoke) {
-    try {
-      const items = await invoke("list_custom_stations");
-      return Array.isArray(items) ? items : [];
-    } catch (e) {
-      console.warn("No se pudo leer SQLite, usando almacenamiento local.", e);
-    }
-  }
-
+  // Android native uses Room Database, web app uses localStorage
   return JSON.parse(localStorage.getItem("ultra_custom") || "[]");
 };
 
 const persistCustomStation = async (station) => {
-  const invoke = tauriInvoke();
-  if (invoke) {
-    await invoke("add_custom_station", {
-      station: {
-        name: station.name,
-        url: station.url,
-        country: station.country,
-        region: station.region,
-        district: station.district || null,
-        caserio: station.caserio || null
-      }
-    });
-    return;
-  }
-
+  // Android native uses Room Database; web app uses localStorage
   const customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
   customStations.push(station);
   localStorage.setItem("ultra_custom", JSON.stringify(customStations));
 };
 
 const removeCustomStation = async (station) => {
-  const invoke = tauriInvoke();
-  if (invoke) {
-    await invoke("delete_custom_station", { name: station.name, url: station.url });
-    return;
-  }
-
+  // Android native uses Room Database; web app uses localStorage
   let customStations = JSON.parse(localStorage.getItem("ultra_custom") || "[]");
   customStations = customStations.filter(s => !(s.name === station.name && s.url === station.url));
   localStorage.setItem("ultra_custom", JSON.stringify(customStations));

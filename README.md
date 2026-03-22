@@ -2,7 +2,7 @@
 
 ![Version](https://img.shields.io/badge/version-v9.5-00e676?style=for-the-badge)
 ![PWA Score](https://img.shields.io/badge/PWABuilder-44%2F44-brightgreen?style=for-the-badge&logo=pwa)
-![Platform](https://img.shields.io/badge/Android-TWA-3DDC84?style=for-the-badge&logo=android)
+![Platform](https://img.shields.io/badge/Android-Kotlin%20%2B%20Compose-3DDC84?style=for-the-badge&logo=android)
 
 **Radio Satelital** es una aplicación de radio progresiva (PWA) de última generación, certificada con **puntuación perfecta (44/44)** en estándares web. Diseñada para ofrecer streaming de alta calidad, modo offline real y una experiencia visual inmersiva.
 
@@ -43,12 +43,13 @@ Descarga la aplicación nativa sin publicidad y con todas las funciones desbloqu
 
 ---
 
-## 🖥️ App Nativa de Escritorio (sin depender de Chrome)
+## 🤖 Desarrollo Android Nativo (Kotlin + Jetpack Compose)
 
-Este repositorio ahora incluye una versión de escritorio con **Tauri** en la carpeta `src-tauri/`.
+Este repositorio prioriza el desarrollo Android nativo con **Kotlin + Jetpack Compose**.
+El módulo Android está en `android/`.
 
 ### ✅ Persistencia real de radios personalizadas
-- En modo nativo (Tauri), las radios agregadas desde la app se guardan en **SQLite** (no en caché del navegador).
+- En modo Android nativo, las radios agregadas desde la app se guardan en **SQLite** (no en caché del navegador).
 - Al actualizar la aplicación, las radios personalizadas **se mantienen**.
 - Campos soportados al agregar radio: **nombre, link, país, región, distrito y caserío**.
 
@@ -61,7 +62,7 @@ Con esta versión puedes habilitar que **todas las personas vean las radios que 
 	- `url`: URL de tu proyecto Supabase.
 	- `anonKey`: clave pública anon.
 	- `table`: `global_stations` (por defecto).
-4. Ejecuta la app (`npm run tauri:dev` o web) y agrega una radio desde el formulario.
+4. Ejecuta la app Android (`./build.sh build`) o web y agrega una radio desde el formulario.
 5. Las radios nuevas entran como **pending** (cola de revisión).
 6. Solo radios **approved** se muestran a todos en la app.
 
@@ -100,32 +101,23 @@ Para máxima velocidad global:
 - Si usas endpoint REST personalizado, define `restUrl` en [supabase.config.js](supabase.config.js).
 
 ### Requisitos
-- Node.js 20+
-- Rust (toolchain estable)
-- Dependencias del sistema para Tauri en Linux (WebKitGTK, etc.)
+- JDK 17+
+- Android SDK (platform-tools + build-tools)
+- Gradle (o wrapper incluido en `android/`)
 
-### Ejecutar en modo desarrollo
+### Compilar en modo desarrollo
 ```bash
-npm install
-npm run tauri:dev
+./build.sh build
 ```
 
-### Generar instalador/binarios nativos
+### Generar APK release
 ```bash
-npm run tauri:build
+make release
 ```
 
-Los paquetes compilados se generan dentro de `src-tauri/target/release/bundle/`.
+Los artefactos APK se generan dentro de `android/app/build/outputs/apk/`.
 
-### Android (app nativa)
-Tauri v2 también permite empaquetar para Android:
-
-```bash
-npm run tauri android init
-npm run tauri android build
-```
-
-> Nota: para Android necesitas Android Studio + SDK/NDK configurados.
+> Nota: para Android necesitas Android Studio o SDK de línea de comandos configurado.
 
 ---
 
@@ -144,7 +136,7 @@ npm run tauri android build
 ├── style.css         # Motor de Temas v9.5
 ├── main.js           # Lógica del reproductor
 ├── stations.js       # Base de datos de emisoras
-├── src-tauri/        # App nativa de escritorio (Tauri)
+├── android/  # Módulo Android nativo (Kotlin + Compose)
 └── assets/           # Iconos e imágenes
 
 ```
