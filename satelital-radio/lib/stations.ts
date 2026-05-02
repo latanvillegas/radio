@@ -1,15 +1,35 @@
-import type { Station } from '../types/station'
-import defaultStationsData from '../data/stations.json'
-export { loadGlobalStations, persistGlobalStation } from './supabase'
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebase";
 
-export const defaultStations = defaultStationsData as Station[]
+/**
+ * Interfaz para representar una emisora de radio desde Firestore
+ */
+export interface Radio {
+  id: string;
+  name: string;
+  country?: string;
+  streamUrl: string;
+  logoUrl?: string;
+  isFavorite?: boolean;
+  tags?: string[];
+}
 
-export function mergeStationSources(defaultStations:Station[], globalStations:Station[], customStations:Station[]){
-  const map = new Map<string, Station>()
-  const keyFor = (s:Station)=>`${s.name}|${s.url}`
-  ;[...defaultStations, ...globalStations, ...customStations].forEach(s=>{
-    const k = keyFor(s)
-    if(!map.has(k)) map.set(k,s)
-  })
-  return Array.from(map.values())
+/**
+ * Obtiene todas las emisoras públicas de la colección "public_radios" en Firestore
+ */
+export async function getPublicRadios(): Promise<Radio[]> {
+  const col = collection(db, "public_radios");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as any;
+    return {
+      id: doc.id,
+      name: data.name ?? "",
+      country: data.country ?? "",
+      streamUrl: data.streamUrl ?? data.stream_url ?? data.stream ?? "",
+      logoUrl: data.logoUrl ?? data.logo_url ?? data.logo ?? "",
+      isFavorite: !!data.isFavorite,
+      tags: Array.isArray(data.tags) ? data.tags : [],
+    } as Radio;
+  });
 }

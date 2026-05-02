@@ -1,6 +1,8 @@
 export interface Station {
+  id?: string
   name: string
-  url: string
+  url?: string
+  streamUrl?: string
   country?: string
   region?: string
   district?: string
@@ -8,4 +10,7 @@ export interface Station {
   isCustom?: boolean
   isGlobal?: boolean
   icon?: string
+  logoUrl?: string
+  isFavorite?: boolean
+  tags?: string[]
 }

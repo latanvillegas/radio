@@ -6,3 +6,4 @@ src-tauri/gen/
 android-keystore.jks
 android-keystore.txt
 SIGNING_README.txt
+.env.local

@@ -7,7 +7,7 @@ import Filters from '../components/Filters'
 import useStations from '../hooks/useStations'
 
 export default function Page() {
-  const { stations, currentStation, playStation, toggleFavorite, setQuery, filters, toggleOnlyFavs } = useStations()
+  const { stations, currentStation, playStation, toggleFavorite, setQuery, filters, toggleOnlyFavs, loading, error } = useStations()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const toggleMenu = () => setMenuOpen(open => !open)
@@ -43,12 +43,40 @@ export default function Page() {
             <div className="panel-head-small">
               <h3>Panel rápido</h3>
             </div>
-            <p className="track-meta">{stations.length} emisoras disponibles</p>
+            {loading ? (
+              <p className="track-meta">Cargando emisoras...</p>
+            ) : error ? (
+              <p className="track-meta" style={{ color: '#ff6b6b' }}>{error}</p>
+            ) : (
+              <p className="track-meta">{stations.length} emisoras disponibles</p>
+            )}
           </div>
         </aside>
         <main className="right-col">
-          <Filters setQuery={setQuery} filters={filters} toggleOnlyFavs={toggleOnlyFavs} />
-          <StationGrid stations={stations} playStation={playStation} toggleFavorite={toggleFavorite} onResetFilters={resetFilters} />
+          {!error && !loading && (
+            <Filters setQuery={setQuery} filters={filters} toggleOnlyFavs={toggleOnlyFavs} />
+          )}
+          {loading && (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <p>Conectando con Firebase...</p>
+            </div>
+          )}
+          {error && (
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#ff6b6b' }}>
+              <p><strong>{error}</strong></p>
+              <p style={{ fontSize: '0.9rem', marginTop: '1rem' }}>
+                Verifica que las variables NEXT_PUBLIC_FIREBASE_* estén configuradas en .env.local
+              </p>
+            </div>
+          )}
+          {!loading && !error && stations.length === 0 && (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <p>No hay emisoras disponibles</p>
+            </div>
+          )}
+          {!loading && !error && (
+            <StationGrid stations={stations} playStation={playStation} toggleFavorite={toggleFavorite} onResetFilters={resetFilters} />
+          )}
         </main>
       </div>
       <SideMenu open={menuOpen} onClose={()=>setMenuOpen(false)} />
