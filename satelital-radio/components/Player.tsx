@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useEffect } from 'react'
 import usePlayer from '../hooks/usePlayer'
 import type { Station } from '../types/station'
 
@@ -10,6 +10,27 @@ type Props = {
 export default function Player({ currentStation }: Props){
   const { isPlaying, togglePlay, secondsElapsed } = usePlayer()
 
+  useEffect(() => {
+    const audio = document.getElementById('radioPlayer') as HTMLAudioElement | null
+    if (!audio) return
+
+    const handleError = (e: Event) => {
+      console.error('[Player UI] Error de audio:', (e.target as HTMLAudioElement)?.error?.message)
+    }
+
+    const handleLoadstart = () => {
+      console.log('[Player UI] Iniciando carga de stream...')
+    }
+
+    audio.addEventListener('error', handleError)
+    audio.addEventListener('loadstart', handleLoadstart)
+
+    return () => {
+      audio.removeEventListener('error', handleError)
+      audio.removeEventListener('loadstart', handleLoadstart)
+    }
+  }, [])
+
   return (
     <div className="player-section glass-panel">
       <div className="player-waves-container parallax">
@@ -19,7 +40,9 @@ export default function Player({ currentStation }: Props){
       </div>
 
       <div className="player-info">
-        <span className={`status-indicator ${isPlaying ? 'live' : ''}`}>{isPlaying ? 'EN VIVO' : 'SIN SEÑAL / CAMBIANDO...'}</span>
+        <span className={`status-indicator ${isPlaying ? 'live' : ''}`}>
+          {isPlaying ? 'EN VIVO' : 'LISTO'}
+        </span>
         <h2 className="track-title">{currentStation?.name || 'Radio Satelital'}</h2>
         <div className="track-meta">{currentStation?.country || 'Selecciona una emisora'} • {currentStation?.region || '—'}</div>
       </div>
@@ -37,7 +60,11 @@ export default function Player({ currentStation }: Props){
         </div>
       </div>
 
-      <audio id="radioPlayer" crossOrigin="anonymous" />
+      <audio 
+        id="radioPlayer" 
+        crossOrigin="anonymous"
+        preload="none"
+      />
     </div>
   )
 }
