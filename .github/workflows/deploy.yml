@@ -21,8 +21,8 @@ jobs:
       - name: Build
         run: cd satelital-radio && npm run build
 
-      - name: Export static files
-        run: cd satelital-radio && npm run export || npx next export
+      - name: Build & Export
+        run: cd satelital-radio && npm run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
