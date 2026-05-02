@@ -1,5 +1,6 @@
 "use client"
 import React, { useState } from 'react'
+import ThemeInitializer from '../components/ThemeInitializer'
 import Player from '../components/Player'
 import StationGrid from '../components/StationGrid'
 import SideMenu from '../components/SideMenu'
@@ -33,7 +34,9 @@ export default function Page() {
   }
 
   return (
-    <div className="container">
+    <>
+      <ThemeInitializer />
+      <div className="container">
       <header className="site-header">
         <div className="header-inner">
           <div className="brand-mark">
@@ -99,6 +102,7 @@ export default function Page() {
         toggleOnlyFavs={toggleOnlyFavs}
         onResetFilters={showAllStations}
       />
-    </div>
+      </div>
+    </>
   )
 }

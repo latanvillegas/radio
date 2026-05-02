@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { initializeThemeSettings, getAvailableThemes, getTheme, getUiScaleMode, setTheme, setUiScaleMode, detectScreenSize, type ThemeName, type UiScaleMode } from '../lib/theme'
+import { getAvailableThemes, getTheme, getUiScaleMode, setTheme, setUiScaleMode, detectScreenSize, type ThemeName, type UiScaleMode } from '../lib/theme'
 import Filters from './Filters'
 
 type Props = {
@@ -46,7 +46,6 @@ export default function SideMenu({ open, onClose, loading, error, stationsCount,
   const [currentScaleMode, setCurrentScaleMode] = useState<UiScaleMode>('auto')
 
   useEffect(() => {
-    initializeThemeSettings()
     setCurrentTheme(getTheme())
     setCurrentScaleMode(getUiScaleMode())
   }, [])
