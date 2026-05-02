@@ -39,6 +39,10 @@ img{max-width:100%;display:block}
 .site-subtitle{margin:0;font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.15em}
 
 .glass-panel{background:var(--bg-glass);border:1px solid var(--border-glass);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;position:relative;transition:background .3s}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.panel-head h3{margin:0;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+.header-actions{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.station-panel-head{margin-bottom:1rem}
 .panel-head-small h3{margin:0 0 1rem 0;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
 .mini-form{display:flex;flex-direction:column;gap:12px}
 
@@ -59,7 +63,8 @@ img{max-width:100%;display:block}
 .track-meta{font-size:.95rem;color:var(--text-muted);margin-top:.5rem;font-weight:500}
 .now-playing-container{margin:1.5rem 0;min-height:2.5rem;display:flex;justify-content:center;align-items:center;position:relative;z-index:1}
 .track-artist{margin:0;color:var(--text-main);font-size:1.1rem;font-weight:600;text-shadow:0 2px 10px rgba(0,0,0,.5)}
-.timer-text{font-family:'Inter', monospace;font-variant-numeric:tabular-nums;font-size:2.2rem;font-weight:900;color:var(--text-main);margin:.5rem 0 1.5rem;opacity:.2;transition:opacity .3s;position:relative;z-index:1}
+.timer-text{font-family:'Inter', monospace;font-variant-numeric:tabular-nums;font-size:2.2rem;font-weight:900;color:var(--text-main);margin:.5rem 0 1.5rem;opacity:.35;transition:opacity .3s;position:relative;z-index:1}
+.timer-text.live{opacity:1;text-shadow:0 0 18px rgba(255,255,255,.12)}
 .custom-controls{width:100%;display:flex;flex-direction:column;gap:1.5rem;align-items:center;position:relative;z-index:1}
 .control-group{display:flex;align-items:center;justify-content:center;gap:24px;width:100%}
 .play-btn{width:72px;height:72px;border-radius:50%;background:var(--btn-bg);color:var(--btn-text);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 25px rgba(0,0,0,.2)}
@@ -67,6 +72,7 @@ img{max-width:100%;display:block}
 .play-btn:hover{box-shadow:0 0 20px rgba(255,255,255,.25)}
 .sec-btn{background:transparent;border:none;color:var(--text-main);opacity:.7;cursor:pointer;min-width:var(--touch-target);min-height:var(--touch-target);padding:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s ease}
 .sec-btn:hover{opacity:1;background:rgba(125,125,125,.15);transform:scale(1.05)}
+#btnOptions{margin-left:auto}
 
 /* Station card */
 .station-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;max-height:calc(100vh - 280px);min-height:300px;overflow-y:auto;padding-right:5px;align-content:start}

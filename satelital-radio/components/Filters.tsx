@@ -19,9 +19,6 @@ export default function Filters({ setQuery, filters, toggleOnlyFavs }: Props){
     <div className="glass-panel filters">
       <div className="panel-head">
         <h3>Filtros</h3>
-        <label className="switch-label">
-          <input type="checkbox" id="favoritesToggle" onChange={(e)=>toggleOnlyFavs(e.target.checked)} /> Favoritos
-        </label>
       </div>
       <div className="filter-row">
         <div className="form-group">
@@ -40,6 +37,9 @@ export default function Filters({ setQuery, filters, toggleOnlyFavs }: Props){
           </select>
         </div>
       </div>
+      <label className="switch-label">
+        <input type="checkbox" id="favoritesToggle" onChange={(e)=>toggleOnlyFavs(e.target.checked)} /> Prioridad Favoritos
+      </label>
     </div>
   )
 }

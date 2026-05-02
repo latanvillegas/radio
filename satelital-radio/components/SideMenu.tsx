@@ -1,19 +1,23 @@
 "use client"
-import React, { useState } from 'react'
-import { setTheme, getTheme } from '../lib/theme'
+import React from 'react'
+import { setTheme } from '../lib/theme'
 
-export default function SideMenu(){
-  const [open, setOpen] = useState(false)
+type Props = {
+  open: boolean
+  onClose: () => void
+}
+
+export default function SideMenu({ open, onClose }: Props){
   const themes = ['amoled','gold','purple','white','wear-ocean','wear-sunset','wear-galaxy','wear-mint','wear-cherry']
 
   return (
-    <div className={`side-menu ${open? 'open':''}`} aria-hidden={!open}>
+    <div className={`side-menu ${open ? 'open' : ''}`} aria-hidden={!open}>
       <div style={{padding:16}}>
-        <button onClick={()=>setOpen(false)}>Cerrar</button>
+        <button onClick={onClose}>Cerrar</button>
         <h3>Tema</h3>
         <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
           {themes.map(t=> (
-            <button key={t} className="sec-btn" onClick={()=>{setTheme(t);}}>{t}</button>
+            <button key={t} className="sec-btn" onClick={()=>{setTheme(t)}}>{t}</button>
           ))}
         </div>
 

@@ -29,7 +29,7 @@ export default function Player({ currentStation }: Props){
       </div>
 
       <div className="custom-controls">
-        <div className="timer-text">{new Date(secondsElapsed * 1000).toISOString().substring(14, 19)}</div>
+        <div className={`timer-text ${isPlaying ? 'live' : ''}`}>{new Date(secondsElapsed * 1000).toISOString().substring(14, 19)}</div>
         <div className="control-group">
           <button className="sec-btn" onClick={()=>{}} aria-label="Anterior">⏮</button>
           <button className="play-btn" onClick={togglePlay} aria-pressed={isPlaying} id="playBtn">{isPlaying? '⏸':'▶'}</button>
