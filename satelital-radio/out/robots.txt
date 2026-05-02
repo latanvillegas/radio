@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Enlace directo a tu Sitemap (Vital para Search Console)
+Sitemap: https://latanvillegas.online/sitemap.xml
